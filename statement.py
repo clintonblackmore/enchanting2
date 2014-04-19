@@ -66,6 +66,9 @@ class CodeStream:
 
 class Statement:
     "A statement is a one or more pieces of data or code, and the base class for such"
+
+    def __repr__(self):
+        return "%s()" % (self.__class__.__name__)
     
     def evaluate(self):
         """Perform necessary steps to reduce this to a single data type.
@@ -87,7 +90,7 @@ class Statement:
     def write_to_stream(self, stream):
         pass
 
-class NilStatement(Statement):
+class Nil(Statement):
     "A value that indicates no value"
 
     def __repr__(self):
@@ -99,14 +102,17 @@ class NilStatement(Statement):
 
     # as_number, as_bool, and as_string are as in the base class
 
-class NumberStatement(Statement):
+class Number(Statement):
     "A value that indicates no value"
 
     def __init__(self, value = 0):
         self.value = value
 
-    def __repr__(self):
+    def __str__(self):
         return "#" + str(self.value)
+
+    def __repr__(self):
+        return "%s(%f)" % (self.__class__.__name__, self.value)
 
     def read_from_stream(self, stream):
         self.value = stream.read_float()
@@ -126,7 +132,7 @@ class NumberStatement(Statement):
     def write_to_stream(self, stream):
         stream.write_float(self.value)
 
-class FunctionStatment(Statement):
+class Function(Statement):
     "A statement that represents a function"
 
     operations = {
@@ -140,16 +146,20 @@ class FunctionStatment(Statement):
         self.opcode = opcode
         self.args = args
 
-    def __repr__(self):
-        if self.opcode in FunctionStatment.operations:
-            op = FunctionStatment.operations[self.opcode][0]
+    def __str__(self):
+        if self.opcode in Function.operations:
+            op = Function.operations[self.opcode][0]
             return "(%s %s %s)" % (self.args[0], op, self.args[1])
         return "op%d %s" % (self.opcode, self.args)
 
+    def __repr__(self):
+        return "%s(%d, %s)" % (self.__class__.__name__, self.opcode, 
+                               ", ".join(arg.__repr__() for arg in self.args))
+                          
     def evaluate(self):
-        op = FunctionStatment.operations[self.opcode][1]
+        op = Function.operations[self.opcode][1]
         arg_values = [arg.evaluate().as_number() for arg in self.args]
-        return NumberStatement(op(*arg_values))
+        return Number(op(*arg_values))
 
     def read_from_stream(self, stream):
         count = stream.read_byte()
@@ -162,7 +172,7 @@ class FunctionStatment(Statement):
         for arg in self.args:
             stream.write_statement(arg)
 
-statement_type = {0 : NilStatement, 1 : NumberStatement, 2 : FunctionStatment}
+statement_type = {0 : Nil, 1 : Number, 2 : Function}
 id_from_statement = {}
 for key, value in statement_type.iteritems():
     id_from_statement[value] = key
@@ -172,10 +182,10 @@ my_array = array.array('B',[1,2,3,4, 5,6])
 c = CodeStream(my_array)
 print c.read_statement()
 
-print NumberStatement(52.7)
-fn = FunctionStatment(0, 
-                FunctionStatment(1, NumberStatement(80), NumberStatement(31)),
-                FunctionStatment(2, NumberStatement(2), NumberStatement(4)));
+print Number(52.7)
+fn = Function(0, 
+                Function(1, Number(80), Number(31)),
+                Function(2, Number(2), Number(4)));
 print fn
 print fn.evaluate()
 
@@ -184,3 +194,6 @@ d = CodeStream(buf)
 d.write_statement(fn)
 print d
 print d.buffer
+
+print fn.__repr__()
+print fn
