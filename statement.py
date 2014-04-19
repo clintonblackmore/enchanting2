@@ -43,7 +43,8 @@ class CodeStream:
     def write_formatted_data(self, fmt, *args):
         offset = self.offset
         self.offset += struct.calcsize(fmt)
-        struct.pack_into(fmt, self.buffer, offset, *args)
+        #struct.pack_into(fmt, self.buffer, offset, *args)
+        self.buffer.fromstring(struct.pack(fmt, *args))
 
     def write_byte(self, value):
         self.write_formatted_data("!B", value);       
@@ -190,7 +191,7 @@ print fn
 print fn.evaluate()
 
 buf = array.array('B', '\0' * 50)
-d = CodeStream(buf)
+d = CodeStream()
 d.write_statement(fn)
 print d
 print d.buffer
