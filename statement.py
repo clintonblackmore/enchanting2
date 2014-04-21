@@ -74,7 +74,7 @@ class Number(Statement):
         return self.value;
     
     def as_bool(self):
-        return self.value == 0.0;
+        return self.value != 0.0;
     
     def as_string(self):
         return str(self.value);
@@ -180,6 +180,7 @@ class IfThenElse(Statement):
         self.condition = condition
         self.true_block = true_block
         self.false_block = false_block
+        self.result = None
         super(self.__class__, self).__init__(next_block)
         
     def __str__(self):
@@ -194,4 +195,99 @@ class IfThenElse(Statement):
                 self.false_block.__repr__(),
                 self.repr_next())
 
- 
+    def evaluate(self, environment):
+        if not environment.am_on_top_of_stack(self):
+            # First time into if statement
+            self.result = self.condition.evaluate(environment).as_bool()
+            print self.result
+            environment.push_on_stack(self)
+        else:
+            # Inner execution finished, and we are called again
+            self.result = None
+            environment.pop_off_stack(self)
+
+    def next_statement(self, environment):
+        if self.result == None:
+            return self.next_block
+        if self.result == True:
+            return self.true_block
+        return self.false_block
+
+class Variable(Statement):
+
+    # The operations are:
+    #   code 1: read (get) the variable
+    #   code 2: write (set) the variable
+    #   code 3: change (increment) the variable
+    
+    def __init__(self, id, opcode, value=None, next_block=None):
+        """A statement representing a variable or variable operation
+        
+        :param id: an integer representing the variable. (Think 'var1', 'var2', 'var3')
+        :type id: a number
+        :param opcode: which operation we are performing (1 = get, 2 = set, 3 = increment)
+        :type opcode: a number
+        :param value: 
+            For 'get' - None (as it is unused)
+            For 'set' - the value we are setting the variable to
+            For 'increment' - how much we are incrementing the variable by
+        :type value: a Statement.  (It is an expression evaluated each time the code is run)
+        :param next_block: the block that follows this one, or None
+        :type next_block: a Statement
+        """        
+        self.id = id
+        self.opcode = opcode
+        self.value = value
+        super(self.__class__, self).__init__(next_block)
+        
+    def name(self):
+        "Returns the variable's name"
+        return "var%d" % id
+        
+    def __str__(self):
+        if self.opcode == 1:
+            return "(%s)" % self.name()
+        if self.opcode == 2:
+            return "%s = %s" % (self.name(), self.value)
+        if self.opcode == 3:
+            return "%s += %s" % (self.name(), self.value)
+
+    def __repr__(self):
+        return "%s(%d, %d, %s%s)" % (self.__class__.__name__, self.id, 
+                                     self.opcode, self.value.__repr__(),
+                                     self.repr_next())
+
+    def read_from_stream(self, stream):
+        # We need to read our id, opcode, and value
+        self.id = stream.read_short()
+        self.opcode = stream.read_byte()
+        self.value = stream.read_statement()
+    
+    def write_to_stream(self, stream):
+        # Write our id, opcode, and value
+        stream.write_short(self.id)
+        stream.write_byte(self.opcode)
+        stream.write_statement(self.value)
+        
+    def evaluate(self, environment):
+        if self.opcode == 1:
+            return self.get(environment)
+        if self.opcode == 2:
+            return self.set(environment, self.value.evaluate(environment))
+        if self.opcode == 3:
+            return self.increment(environment)
+
+    def get(self, env):
+        result = env.get_variable(self.id)
+        if result is not None:
+            return result
+        return Nil()
+        
+    def set(self, env, final_value):
+        env.set_variable(self.id, final_value)
+        return Nil()
+    
+    def increment(self, env):
+        self.set(env, Number(self.get(env).as_number() + 
+                             self.value.evaluate(env).as_number()))
+        return Nil()

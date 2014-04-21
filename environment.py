@@ -4,8 +4,7 @@ class Environment(object):
     
     def __init__(self):
         self.stack = [] # the stack is used to know where to go when there is no sibling-level code to run
-        
-        # declare things for variables here.  Name map? value map?
+        self.variables = {} # id -> [value, name]
         
     def am_on_top_of_stack(self, statement):
         "Is a (block-level) statement on top of the stack?"
@@ -19,6 +18,20 @@ class Environment(object):
         assert self.am_on_top_of_stack(statement)
         self.stack.pop()
         
+    def get_variable(self, id):
+        return self.variables.get(id, [None, None])[0]
+    
+    def get_variable_name(self, id):
+        return self.variables.get(id, [None, None])[1]
+                
+    def set_variable(self, id, value = None, name = None):
+        var_info = self.variables.get(id, [None, None])
+        if value is not None:
+            var_info[0] = value
+        if name is not None:
+            var_info[1] = name
+        self.variables[id] = var_info
+                
     def run(self, statement):
         "Runs the specified code in the current environment"
         
