@@ -30,18 +30,27 @@ def main():
     #print fn
     
     
-    f = Function(4, Number(17))
-    g = Function(4, Number(22))
-    f.next_block = g
+    f = Function(4, [Number(17)])
     
-    a = Function(4, Number(1))
+    a = Function(4, [Number(1)], None)
     r = Repeat(Number(3), f)
-    b = Function(4, Number(2))
-    a.next_block = r
+    b = Function(4, (Number(2),), next_block = None)
+    ro = Repeat(Number(2), r)
+
+    a.next_block = ro
     r.next_block = b
     
     env.run(a)
     
+
+    
+
+    
+    print "a"
+    print a.__repr__()
+    
+    env.run(eval(a.__repr__()))
+     
     print "done"
 
 
