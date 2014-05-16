@@ -13,7 +13,7 @@ def main():
     #                   next_block=None) )       
 
 
-    env.run(Variable(1, 2, Number(47), next_block=Repeat(Number(3), Variable(1, 3, Number(10)),next_block=Function(4,[Variable(1,1)]))))
+    env.run(Variable(1, 2, Number(47), next_block=Repeat(Number(10), Variable(1, 3, Number(10)),next_block=Function(4,[Variable(1,1)]))))
 
     print "Done again"
 main()
