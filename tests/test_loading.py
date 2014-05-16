@@ -9,6 +9,8 @@ except ImportError:
 sys.path.append('..')
 from project import Project
 from sprite import Sprite
+from stage import Stage
+
 import util
 
 sample_document = "sample_project.xml"
@@ -55,6 +57,15 @@ class PyInterpreterTestCase(unittest.TestCase):
 		new_tree = s.serialize()
 		
 		self.assertEqual(tree, new_tree)
+
+	def test_serialization_of_stage(self):
+		tree = xmltodict.parse(open(sample_document))["project"]["stage"]
+		s = Stage()
+		s.deserialize(tree)
+		new_tree = s.serialize()
+		
+		self.assertEqual(tree, new_tree)
+
 
 if __name__ == '__main__':
     unittest.main()
