@@ -1,6 +1,4 @@
-from collections import OrderedDict
-
-from xml.etree.cElementTree import Element, SubElement
+from xml.etree.cElementTree import Element
 
 class Project:
 	"Represents a Snap! Project"

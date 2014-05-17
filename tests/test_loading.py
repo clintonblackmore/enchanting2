@@ -64,12 +64,15 @@ class PyInterpreterTestCase(unittest.TestCase):
 				normalized_xml(ElementTree.tostring(new_tree.getroot())))
 
 	def test_serialization_of_sprite(self):
-		tree = xmltodict.parse(open(sample_document))["project"]["stage"]["sprites"]["sprite"][0]
+		tree = ElementTree.parse(sample_document)
+		start_node = tree.getroot().find("stage").find("sprites").find("sprite")
 		s = Sprite()
-		s.deserialize(tree)
-		new_tree = s.serialize()
+		s.deserialize(start_node)
+		new_tree = ElementTree.ElementTree(s.serialize())
 		
-		self.assertEqual(tree, new_tree)
+		self.assertEqual(
+				normalized_xml(ElementTree.tostring(start_node)),
+				normalized_xml(ElementTree.tostring(new_tree.getroot())))
 
 	def test_serialization_of_stage(self):
 		tree = xmltodict.parse(open(sample_document))["project"]["stage"]

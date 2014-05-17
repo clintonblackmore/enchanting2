@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from xml.etree.cElementTree import Element
 
 import util
 
@@ -28,53 +28,50 @@ class Sprite:
 		self.blocks = None
 		self.scripts = None
 	
-	def deserialize(self, tree):
-		"Loads this class from a nested dictionary representation"
+	def deserialize(self, elem):
+		"Loads this class from an element tree representation"
 		
+		assert(elem.tag == "sprite")
+			
 		# attributes
-		self.name = tree[u"@name"]
-		self.idx  = int(tree[u"@idx"])
-		self.x = float(tree[u"@x"])
-		self.y = float(tree[u"@y"])
-		self.heading = float(tree[u"@heading"])
-		self.scale = float(tree[u"@scale"])
-		self.rotation = float(tree[u"@rotation"])
-		self.draggable = util.bool_from_string(tree[u"@draggable"])
-		self.costume = int(tree[u"@costume"])
-		self.color = tree[u"@color"]
-		self.pen = tree[u"@pen"]
-		self.id = int(tree[u"@id"])
+		self.name = elem.get("name")
+		self.idx  = int(elem.get("idx"))
+		self.x = float(elem.get("x"))
+		self.y = float(elem.get("y"))
+		self.heading = float(elem.get("heading"))
+		self.scale = float(elem.get("scale"))
+		self.rotation = float(elem.get("rotation"))
+		self.draggable = util.bool_from_string(elem.get("draggable"))
+		self.costume = int(elem.get("costume"))
+		self.color = elem.get("color")
+		self.pen = elem.get("pen")
+		self.id = int(elem.get("id"))
 		
 		# children
-		self.costumes = tree[u"costumes"]
-		self.sounds = tree[u"sounds"]
-		self.variables = tree[u"variables"]
-		self.blocks = tree[u"blocks"]
-		self.scripts = tree[u"scripts"]
+		self.costumes = elem.find("costumes")
+		self.sounds = elem.find("sounds")
+		self.variables = elem.find("variables")
+		self.blocks = elem.find("blocks")
+		self.scripts = elem.find("scripts")
 
 	def serialize(self):
-		"Saves this class as a nested dictionary representation"
+		"Return an elementtree representing this object"
 		
-		return OrderedDict([
-			# attributes
-			(u"@name", self.name),
-			(u"@idx", util.number_to_string(self.idx)),
-			(u"@x", util.number_to_string(self.x)),
-			(u"@y", util.number_to_string(self.y)),
-			(u"@heading", util.number_to_string(self.heading)),
-			(u"@scale", util.number_to_string(self.scale)),
-			(u"@rotation", util.number_to_string(self.rotation)),
-			(u"@draggable", util.bool_to_string(self.draggable)),
-			(u"@costume", util.number_to_string(self.costume)), 
-			(u"@color", self.color),
-			(u"@pen", self.pen),
-			(u"@id", util.number_to_string(self.id)),
-			
-			# children
-			(u"costumes", self.costumes),
-			(u"sounds", self.sounds),
-			(u"variables", self.variables),
-			(u"blocks", self.blocks),
-			(u"scripts", self.scripts)
-		])
+		script = Element("sprite", 
+						name = self.name, 
+					  	idx = util.number_to_string(self.idx),
+						x = util.number_to_string(self.x),
+						y = util.number_to_string(self.y),
+						heading = util.number_to_string(self.heading),
+						scale = util.number_to_string(self.scale),
+						rotation = util.number_to_string(self.rotation),
+						draggable = util.bool_to_string(self.draggable),
+						costume = util.number_to_string(self.costume),
+						color = self.color,
+						pen = self.pen,
+						id = util.number_to_string(self.id))
 		
+		for child in (self.costumes, self.sounds, self.variables, 
+					  self.blocks, self.scripts):
+			script.append(child)
+		return script		
