@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+from xml.etree.cElementTree import Element, SubElement
+
 class Project:
 	"Represents a Snap! Project"
 	
@@ -20,39 +22,34 @@ class Project:
 		self.blocks = None
 		self.variables = None	
 	
-	def deserialize(self, tree):
-		"Loads this class from a nested dictionary representation"
-		proj = tree["project"]
+	def deserialize(self, elem):
+		"Loads this class from an element tree representation"
 		
-		self.name = proj[u"@name"]
-		self.app = proj[u"@app"]
-		self.version = proj[u"@version"]
+		assert(elem.tag == "project")
 		
-		self.notes = proj[u"notes"]
-		self.thumbnail = proj[u"thumbnail"]
-		self.stage = proj[u"stage"]
-		self.hidden = proj[u"hidden"]
-		self.headers = proj[u"headers"]
-		self.code = proj[u"code"]
-		self.blocks = proj[u"blocks"]
-		self.variables = proj[u"variables"]
+		# attributes
+		self.name = elem.get("name")
+		self.app = elem.get("app")
+		self.version = elem.get("version")
+		
+		# children
+		self.notes = elem.find("notes")
+		self.thumbnail = elem.find("thumbnail")
+		self.stage = elem.find("stage")
+		self.hidden = elem.find("hidden")
+		self.headers = elem.find("headers")
+		self.code = elem.find("code")
+		self.blocks = elem.find("blocks")
+		self.variables = elem.find("variables")
 		
 	def serialize(self):
-		"Saves this class as a nested dictionary representation"
-		proj = OrderedDict([
-			(u"@name", self.name),
-			(u"@app", self.app),
-			(u"@version", self.version),
-			
-			(u"notes", self.notes),
-			(u"thumbnail", self.thumbnail),
-			(u"stage", self.stage),
-			(u"hidden", self.hidden),
-			(u"headers", self.headers),
-			(u"code", self.code),
-			(u"blocks", self.blocks),
-			(u"variables", self.variables)
-		])
+		"Return an elementtree representing this object"
 		
-		return OrderedDict([(u"project", proj)])
+		project = Element("project", name=self.name, 
+						  app=self.app, version=self.version)
+		
+		for child in (self.notes, self.thumbnail, self.stage, self.hidden,
+		              self.headers, self.code, self.blocks, self.variables):
+			project.append(child)
+		return project
 		

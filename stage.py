@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from sprite import Sprite
 import util
 
 class Stage:
@@ -51,7 +52,12 @@ class Stage:
 		self.variables = tree[u"variables"]
 		self.blocks = tree[u"blocks"]
 		self.scripts = tree[u"scripts"]
-		self.sprites = tree[u"sprites"]
+		
+		self.sprites = []
+		for sprite_tree in tree[u"sprites"]:
+			s = Sprite()
+			s.deserialize(sprite_tree)
+			self.sprites.append(s)
 
 	def serialize(self):
 		"Saves this class as a nested dictionary representation"
@@ -76,7 +82,9 @@ class Stage:
 			(u"variables", self.variables),
 			(u"blocks", self.blocks),
 			(u"scripts", self.scripts),
-			(u"sprites", self.sprites)
+
+			# (u"sprites", self.sprites)
+			(u"sprites", [sprite.serialize() for sprite in self.sprites])
 		])
 
 		

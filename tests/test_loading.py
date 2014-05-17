@@ -1,6 +1,11 @@
 import sys
 import xmltodict
 
+from xml.etree import cElementTree as ElementTree
+
+from lxml import etree
+from lxml import objectify
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -13,8 +18,15 @@ from stage import Stage
 
 import util
 
-sample_document = "sample_project.xml"
+#sample_document = "sample_project.xml"
+sample_document = "sample_project_no_media.xml"
 
+
+def normalized_xml(xml):
+	"We convert the xml to an object tree and back and return the result, without whitespace"
+	obj = objectify.fromstring(xml)
+	return etree.tostring(obj)
+	
     
 class PyInterpreterTestCase(unittest.TestCase):
 
@@ -42,13 +54,14 @@ class PyInterpreterTestCase(unittest.TestCase):
 					util.bool_from_string( item )))
 
 	def test_serialization_of_project(self):
-		tree = xmltodict.parse(open(sample_document))
+		tree = ElementTree.parse(sample_document)
 		p = Project()
-		p.deserialize(tree)
-		new_tree = p.serialize()
-		#xmltodict.unparse(new_tree)		# just to be sure it works
-
-		self.assertEqual(tree, new_tree)
+		p.deserialize(tree.getroot())
+		new_tree = ElementTree.ElementTree(p.serialize())
+		
+		self.assertEqual(
+				normalized_xml(ElementTree.tostring(tree.getroot())),
+				normalized_xml(ElementTree.tostring(new_tree.getroot())))
 
 	def test_serialization_of_sprite(self):
 		tree = xmltodict.parse(open(sample_document))["project"]["stage"]["sprites"]["sprite"][0]
