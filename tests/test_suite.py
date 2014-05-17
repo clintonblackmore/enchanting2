@@ -30,7 +30,7 @@ def normalized_xml(xml):
 class PyInterpreterTestCase(unittest.TestCase):
 
 	def test_number_to_string_conversion(self):
-		for item in [0, 7, 40, 500, 0.2, 1e5, -14.7]:
+		for item in [0, 7, 40, 500, 0.2, 1e5, -14.7, 138.86512022365332]:
 			self.assertEqual(item, 
 				util.number_from_string( 
 					util.number_to_string( item ))) 
@@ -51,6 +51,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 			self.assertEqual(item, 
 				util.bool_to_string(
 					util.bool_from_string( item )))
+
 
 	def do_test_serialization_of(self, filename, klass, findlist = []):
 		"Read XML from a file, create an object, write it out, and see if it is the same"
