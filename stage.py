@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from xml.etree.cElementTree import Element
 
 from sprite import Sprite
 import util
@@ -30,61 +30,55 @@ class Stage:
 		self.scripts = None
 		self.sprites = None		# unique to stage		
 	
-	def deserialize(self, tree):
-		"Loads this class from a nested dictionary representation"
-		
+	def deserialize(self, elem):
+		"Loads this class from an element tree representation"
+		assert(elem.tag == "stage")
+
 		# attributes
-		self.name = tree[u"@name"]
-		self.width = int(tree[u"@width"])
-		self.height = int(tree[u"@height"])
-		self.costume = int(tree[u"@costume"])
-		self.tempo = float(tree[u"@tempo"])
-		self.threadsafe = util.bool_from_string(tree[u"@threadsafe"])
-		self.lines = tree[u"@lines"]
-		self.codify = util.bool_from_string(tree[u"@codify"])
-		self.scheduled = util.bool_from_string(tree[u"@scheduled"])
-		self.id = int(tree[u"@id"])
+		self.name = elem.get("name")
+		self.width = int(elem.get("width"))
+		self.height = int(elem.get("height"))
+		self.costume = int(elem.get("costume"))
+		self.tempo = float(elem.get("tempo"))
+		self.threadsafe = util.bool_from_string(elem.get("threadsafe"))
+		self.lines = elem.get("lines")
+		self.codify = util.bool_from_string(elem.get("codify"))
+		self.scheduled = util.bool_from_string(elem.get("scheduled"))
+		self.id = int(elem.get("id"))
 		
 		# children
-		self.pentrails = tree[u"pentrails"]
-		self.costumes = tree[u"costumes"]
-		self.sounds = tree[u"sounds"]
-		self.variables = tree[u"variables"]
-		self.blocks = tree[u"blocks"]
-		self.scripts = tree[u"scripts"]
+		self.pentrails = elem.find("pentrails")
+		self.costumes = elem.find("costumes")
+		self.sounds = elem.find("sounds")
+		self.variables = elem.find("variables")
+		self.blocks = elem.find("blocks")
+		self.scripts = elem.find("scripts")
 		
-		self.sprites = []
-		for sprite_tree in tree[u"sprites"]:
-			s = Sprite()
-			s.deserialize(sprite_tree)
-			self.sprites.append(s)
+		self.sprites = elem.find("sprites")
+		#self.sprites = []
+		#for sprite_tree in tree[u"sprites"]:
+		#	s = Sprite()
+		#	s.deserialize(sprite_tree)
+		#	self.sprites.append(s)
 
 	def serialize(self):
-		"Saves this class as a nested dictionary representation"
+		"Return an elementtree representing this object"
 		
-		return OrderedDict([
-			# attributes
-			(u"@name", self.name),
-			(u"@width", util.number_to_string(self.width)),
-			(u"@height", util.number_to_string(self.height)),
-			(u"@costume", util.number_to_string(self.costume)),
-			(u"@tempo", util.number_to_string(self.tempo)),
-			(u"@threadsafe", util.bool_to_string(self.threadsafe)),
-			(u"@lines", self.lines),
-			(u"@codify", util.bool_to_string(self.codify)),
-			(u"@scheduled", util.bool_to_string(self.scheduled)),
-			(u"@id", util.number_to_string(self.id)),
+		stage = Element("stage", 
+						name = self.name,
+						width = util.number_to_string(self.width),
+						height = util.number_to_string(self.height),
+						costume = util.number_to_string(self.costume),
+						tempo = util.number_to_string(self.tempo),
+						threadsafe = util.bool_to_string(self.threadsafe),
+						lines = self.lines,
+						codify = util.bool_to_string(self.codify),
+						scheduled = util.bool_to_string(self.scheduled),
+						id = util.number_to_string(self.id))
 		
-			# children
-			(u"pentrails", self.pentrails),
-			(u"costumes", self.costumes),
-			(u"sounds", self.sounds),
-			(u"variables", self.variables),
-			(u"blocks", self.blocks),
-			(u"scripts", self.scripts),
+		for child in (self.pentrails, self.costumes, self.sounds, 
+					  self.variables, self.blocks, self.scripts, self.sprites):
+			stage.append(child)
+		return stage		
 
-			# (u"sprites", self.sprites)
-			(u"sprites", [sprite.serialize() for sprite in self.sprites])
-		])
-
-		
+	
