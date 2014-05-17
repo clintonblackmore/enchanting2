@@ -22,6 +22,7 @@ class Sprite:
 		self.id = -1
 		
 		# children
+		self.nest = None	# optional attribute
 		self.costumes = None
 		self.sounds = None
 		self.variables = None
@@ -48,6 +49,7 @@ class Sprite:
 		self.id = int(elem.get("id"))
 		
 		# children
+		self.nest = elem.find("nest")
 		self.costumes = elem.find("costumes")
 		self.sounds = elem.find("sounds")
 		self.variables = elem.find("variables")
@@ -71,7 +73,8 @@ class Sprite:
 						pen = self.pen,
 						id = util.number_to_string(self.id))
 		
-		for child in (self.costumes, self.sounds, self.variables, 
+		for child in (self.nest, self.costumes, self.sounds, self.variables, 
 					  self.blocks, self.scripts):
-			script.append(child)
+			if child is not None:
+				script.append(child)
 		return script		

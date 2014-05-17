@@ -8,7 +8,8 @@ def number_to_string(n):
 	"Returns a number as a string, favouring integers over floats"
 	if int(n) == n:
 		return str(int(n))
-	return str(n)
+	#return str(n)
+	return repr(n)	# gives us more (in)significant digits
 
 def bool_from_string(s):
 	"Takes an xml string and returns a bool"

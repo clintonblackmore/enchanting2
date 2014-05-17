@@ -54,15 +54,30 @@ class Stage:
 		self.blocks = elem.find("blocks")
 		self.scripts = elem.find("scripts")
 		
-		self.sprites = elem.find("sprites")
-		#self.sprites = []
-		#for sprite_tree in tree[u"sprites"]:
-		#	s = Sprite()
-		#	s.deserialize(sprite_tree)
-		#	self.sprites.append(s)
+		# The sprites and divided into sprite and watcher elements; 
+		# keep them all in order
+		sprites = elem.find("sprites")
+		self.sprites = []
+		for child in sprites:
+			if child.tag == "sprite":
+				s = Sprite()
+				s.deserialize(child)
+				self.sprites.append(s)
+			else:
+				# it is a 'watcher' node
+				self.sprites.append(child)	
 
 	def serialize(self):
 		"Return an elementtree representing this object"
+		
+		# We have sprite objects and watcher nodes; make a tree of nodes
+		sprites = Element("sprites")
+		for item in self.sprites:
+			if isinstance(item, Sprite):
+				sprites.append( item.serialize() )
+			else:
+				# it is a 'watcher' node
+				sprites.append( item )
 		
 		stage = Element("stage", 
 						name = self.name,
@@ -75,9 +90,9 @@ class Stage:
 						codify = util.bool_to_string(self.codify),
 						scheduled = util.bool_to_string(self.scheduled),
 						id = util.number_to_string(self.id))
-		
+				
 		for child in (self.pentrails, self.costumes, self.sounds, 
-					  self.variables, self.blocks, self.scripts, self.sprites):
+					  self.variables, self.blocks, self.scripts, sprites):
 			stage.append(child)
 		return stage		
 
