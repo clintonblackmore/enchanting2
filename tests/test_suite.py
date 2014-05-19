@@ -1,5 +1,5 @@
 import sys
-import xmltodict
+import glob
 
 from xml.etree import cElementTree as ElementTree
 
@@ -15,11 +15,12 @@ sys.path.append('..')
 from project import Project
 from sprite import Sprite
 from stage import Stage
+from literal import Literal
 
 import util
 
-#sample_document = "sample_project.xml"
 sample_document = "sample_project_no_media.xml"
+all_xml_files = glob.glob('*.xml')
 
 
 def normalized_xml(xml):
@@ -52,6 +53,13 @@ class PyInterpreterTestCase(unittest.TestCase):
 				util.bool_to_string(
 					util.bool_from_string( item )))
 
+	def do_test_serialization_from_all_xml_files_of(self, filenames, klass, findlist = []):
+		self.do_test_serialization_from_files_of(all_xml_files, klass, findlist)
+
+	def do_test_serialization_from_files_of(self, filenames, klass, findlist = []):
+		"Using several files, check that we can serialize and deserialize and objects right"
+		for filename in filenames:
+			self.do_test_serialization_of(filename, klass, findlist)
 
 	def do_test_serialization_of(self, filename, klass, findlist = []):
 		"Read XML from a file, create an object, write it out, and see if it is the same"
@@ -70,13 +78,44 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 
 	def test_serialization_of_project(self):
-		self.do_test_serialization_of(sample_document, Project, [])
+		self.do_test_serialization_from_all_xml_files_of(sample_document, Project, [])
 
 	def test_serialization_of_sprite(self):
-		self.do_test_serialization_of(sample_document, Sprite, ["stage", "sprites", "sprite"])
+		self.do_test_serialization_from_all_xml_files_of(sample_document, Sprite, ["stage", "sprites", "sprite"])
 
 	def test_serialization_of_stage(self):
-		self.do_test_serialization_of(sample_document, Stage, ["stage"])
+		self.do_test_serialization_from_all_xml_files_of(sample_document, Stage, ["stage"])
+	
+	def test_literal_values(self):
+		l = Literal()
+		self.assertEquals(l.value, None)		
+		self.assertEqual(0, l.as_number())
+		self.assertEqual("", l.as_string())
+		
+		l.deserialize(ElementTree.XML('<l>15.75</l>'))
+		self.assertEquals(l.value, 15.75)
+		self.assertEqual(15.75, l.as_number())
+		self.assertEqual("15.75", l.as_string())
+
+		l.deserialize(ElementTree.XML('<l>-20.0</l>'))
+		self.assertEquals(l.value, -20.0)
+		self.assertEqual(-20.0, l.as_number())
+		self.assertEqual("-20", l.as_string())	# no trailing zero
+
+		l.deserialize(ElementTree.XML('<l>hello world</l>'))
+		self.assertEquals(l.value, "hello world")
+		self.assertEqual(0, l.as_number())
+		self.assertEqual("hello world", l.as_string())
+		
+		l.deserialize(ElementTree.XML('<l></l>'))
+		self.assertEquals(l.value, None)
+		self.assertEqual(0, l.as_number())
+		self.assertEqual("", l.as_string())
+		
+		l.deserialize(ElementTree.XML('<l/>'))
+		self.assertEquals(l.value, None)
+		self.assertEqual(0, l.as_number())
+		self.assertEqual("", l.as_string())
 	
 if __name__ == '__main__':
     unittest.main()

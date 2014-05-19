@@ -22,7 +22,7 @@ class Sprite:
 		self.id = -1
 		
 		# children
-		self.nest = None	# optional attribute
+		self.nest = None	# optional child
 		self.costumes = None
 		self.sounds = None
 		self.variables = None
