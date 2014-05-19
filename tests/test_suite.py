@@ -16,6 +16,7 @@ from project import Project
 from sprite import Sprite
 from stage import Stage
 from literal import Literal
+from variable import Variable
 
 import util
 
@@ -116,6 +117,16 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEquals(l.value, None)
 		self.assertEqual(0, l.as_number())
 		self.assertEqual("", l.as_string())
+	
+	def test_variable(self):
+		v = Variable()
+		self.assertEqual(0, v.as_number())
+		self.assertEqual("", v.as_string())
+
+		v.deserialize(ElementTree.XML('<variable name="foo"><l>hello world</l></variable>'))
+		self.assertEqual(v.name, "foo")
+		self.assertEqual("hello world", v.as_string())
+		self.assertEqual(v.contents, Literal("hello world"))
 	
 if __name__ == '__main__':
     unittest.main()
