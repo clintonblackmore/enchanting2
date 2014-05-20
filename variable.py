@@ -1,6 +1,6 @@
 from xml.etree.cElementTree import Element
 
-from literal import Literal
+import factory
 
 class Variable:
 	"""Represents a value that changes over time.  
@@ -18,12 +18,7 @@ class Variable:
 		# We should have one child
 		self.contents = None
 		if len(elem) > 0:
-			child = elem[0]
-			if child.tag == "l":
-				l = Literal()
-				l.deserialize(child)
-				self.contents = l
-			# and so forth with other types
+			self.contents = factory.deserialize_value(elem[0])
 			assert(self.contents is not None)
 	
 	def serialize(self):

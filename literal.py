@@ -16,20 +16,30 @@ class Literal:
 		self.set_value(value)
 		
 	def set_value(self, value):
-		"""Turns the value into a number, if possible
-		Otherwise, leaves it a string or None"""
-		try:
-			self.value = float(value)
-		except:
+		"In order of priority, value is a boolean, number, or string"
+		if isinstance(value, bool):
 			self.value = value
+		else:
+			try:
+				self.value = float(value)
+			except:
+				self.value = value
 		
 	def deserialize(self, elem):
 		"Load from an xml element tree"
-		assert(elem.tag == "l")
-		self.set_value(elem.text)
+		assert(elem.tag == "l" or elem.tag == "bool")
+		if elem.tag == "l":
+			self.set_value(elem.text)
+		else: # elem.tag == "bool":
+			self.set_value(elem.text == "true")
 	
 	def serialize(self):
 		"Save out as an element tree"
+		if isinstance(self.value, bool):
+			literal = Element("bool")
+			literal.text = self.as_string()
+			return literal
+
 		literal = Element("l")
 		if self.value is not None:
 			if isinstance(self.value, float):
@@ -51,10 +61,14 @@ class Literal:
 	def as_string(self):
 		if self.value is None:
 			return ""
-		# Eliminate trailing ".0" from numbers
 		if isinstance(self.value, float):
-			return util.number_to_string(self.value)
+			return util.number_to_string(self.value)	# no trailing .0
+		if isinstance(self.value, bool):
+			return "true" if self.value else "false"	# all lowercase
 		return str(self.value)
 		
+	def as_bool(self):
+		return bool(self.value)
+	
 	# may need to add things like bool, nil, function, etc.
 	

@@ -92,31 +92,50 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEquals(l.value, None)		
 		self.assertEqual(0, l.as_number())
 		self.assertEqual("", l.as_string())
+		self.assertEqual(False, l.as_bool())		
 		
 		l.deserialize(ElementTree.XML('<l>15.75</l>'))
 		self.assertEquals(l.value, 15.75)
 		self.assertEqual(15.75, l.as_number())
 		self.assertEqual("15.75", l.as_string())
+		self.assertEqual(True, l.as_bool())		
 
 		l.deserialize(ElementTree.XML('<l>-20.0</l>'))
 		self.assertEquals(l.value, -20.0)
 		self.assertEqual(-20.0, l.as_number())
 		self.assertEqual("-20", l.as_string())	# no trailing zero
+		self.assertEqual(True, l.as_bool())		
 
 		l.deserialize(ElementTree.XML('<l>hello world</l>'))
 		self.assertEquals(l.value, "hello world")
 		self.assertEqual(0, l.as_number())
 		self.assertEqual("hello world", l.as_string())
+		self.assertEqual(True, l.as_bool())		
 		
 		l.deserialize(ElementTree.XML('<l></l>'))
 		self.assertEquals(l.value, None)
 		self.assertEqual(0, l.as_number())
 		self.assertEqual("", l.as_string())
+		self.assertEqual(False, l.as_bool())		
 		
 		l.deserialize(ElementTree.XML('<l/>'))
 		self.assertEquals(l.value, None)
 		self.assertEqual(0, l.as_number())
 		self.assertEqual("", l.as_string())
+		self.assertEqual(False, l.as_bool())		
+	
+		l.deserialize(ElementTree.XML('<bool>true</bool>'))
+		self.assertEquals(l.value, True)
+		self.assertEqual(1, l.as_number())
+		self.assertEqual("true", l.as_string())
+		self.assertEqual(True, l.as_bool())		
+
+		l.deserialize(ElementTree.XML('<bool>false</bool>'))
+		self.assertEquals(l.value, False)
+		self.assertEqual(0, l.as_number())
+		self.assertEqual("false", l.as_string())
+		self.assertEqual(False, l.as_bool())		
+
 	
 	def test_variable(self):
 		v = Variable()
