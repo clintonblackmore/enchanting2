@@ -1,5 +1,7 @@
 from xml.etree.cElementTree import Element
+from collections import OrderedDict
 
+from variables import Variables
 import util
 
 class Sprite:
@@ -25,7 +27,7 @@ class Sprite:
 		self.nest = None	# optional child
 		self.costumes = None
 		self.sounds = None
-		self.variables = None
+		self.variables = Variables()
 		self.blocks = None
 		self.scripts = None
 	
@@ -52,12 +54,14 @@ class Sprite:
 		self.nest = elem.find("nest")
 		self.costumes = elem.find("costumes")
 		self.sounds = elem.find("sounds")
-		self.variables = elem.find("variables")
+		self.variables.deserialize(elem.find("variables"))
 		self.blocks = elem.find("blocks")
 		self.scripts = elem.find("scripts")
 
 	def serialize(self):
 		"Return an elementtree representing this object"
+		
+		variables_node = self.variables.serialize()
 		
 		script = Element("sprite", 
 						name = self.name, 
@@ -73,8 +77,8 @@ class Sprite:
 						pen = self.pen,
 						id = util.number_to_string(self.id))
 		
-		for child in (self.nest, self.costumes, self.sounds, self.variables, 
-					  self.blocks, self.scripts):
+		for child in (self.nest, self.costumes, self.sounds, 
+					  variables_node, self.blocks, self.scripts):
 			if child is not None:
 				script.append(child)
 		return script		

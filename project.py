@@ -1,5 +1,7 @@
 from xml.etree.cElementTree import Element
 
+from variables import Variables
+
 class Project:
 	"Represents a Snap! Project"
 	
@@ -18,7 +20,7 @@ class Project:
 		self.headers = None
 		self.code = None
 		self.blocks = None
-		self.variables = None	
+		self.variables = Variables()
 	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
@@ -38,7 +40,7 @@ class Project:
 		self.headers = elem.find("headers")
 		self.code = elem.find("code")
 		self.blocks = elem.find("blocks")
-		self.variables = elem.find("variables")
+		self.variables.deserialize(elem.find("variables"))
 		
 	def serialize(self):
 		"Return an elementtree representing this object"
@@ -47,7 +49,8 @@ class Project:
 						  app=self.app, version=self.version)
 		
 		for child in (self.notes, self.thumbnail, self.stage, self.hidden,
-		              self.headers, self.code, self.blocks, self.variables):
+		              self.headers, self.code, self.blocks, 
+		              self.variables.serialize()):
 			project.append(child)
 		return project
 		

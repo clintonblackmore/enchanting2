@@ -1,3 +1,7 @@
+from xml.etree.cElementTree import Element
+
+import util
+
 class Literal:
 	"""Represents a single value.
 	It might be a number, a boolean, a string, or so on.
@@ -28,7 +32,10 @@ class Literal:
 		"Save out as an element tree"
 		literal = Element("l")
 		if self.value is not None:
-			literal.text = str(value)
+			if isinstance(self.value, float):
+				literal.text = util.number_to_string(self.value)
+			else:
+				literal.text = str(self.value)
 		return literal
 		
 	def __eq__(self, other):
@@ -45,8 +52,8 @@ class Literal:
 		if self.value is None:
 			return ""
 		# Eliminate trailing ".0" from numbers
-		if isinstance(self.value, float) and (self.value == int(self.value)):
-			return str(int(self.value))
+		if isinstance(self.value, float):
+			return util.number_to_string(self.value)
 		return str(self.value)
 		
 	# may need to add things like bool, nil, function, etc.

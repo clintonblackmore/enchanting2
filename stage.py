@@ -1,5 +1,7 @@
 from xml.etree.cElementTree import Element
+from collections import OrderedDict
 
+from variables import Variables
 from sprite import Sprite
 import util
 
@@ -25,7 +27,7 @@ class Stage:
 		self.pentrails = None	# unique to stage
 		self.costumes = None
 		self.sounds = None
-		self.variables = None
+		self.variables = Variables()
 		self.blocks = None
 		self.scripts = None
 		self.sprites = None		# unique to stage		
@@ -50,10 +52,10 @@ class Stage:
 		self.pentrails = elem.find("pentrails")
 		self.costumes = elem.find("costumes")
 		self.sounds = elem.find("sounds")
-		self.variables = elem.find("variables")
+		self.variables.deserialize(elem.find("variables"))
 		self.blocks = elem.find("blocks")
 		self.scripts = elem.find("scripts")
-		
+				
 		# The sprites and divided into sprite and watcher elements; 
 		# keep them all in order
 		sprites = elem.find("sprites")
@@ -74,10 +76,12 @@ class Stage:
 		sprites = Element("sprites")
 		for item in self.sprites:
 			if isinstance(item, Sprite):
-				sprites.append( item.serialize() )
+				sprites.append(item.serialize())
 			else:
 				# it is a 'watcher' node
-				sprites.append( item )
+				sprites.append(item)
+		
+		variables_node = self.variables.serialize()
 		
 		stage = Element("stage", 
 						name = self.name,
@@ -92,7 +96,7 @@ class Stage:
 						id = util.number_to_string(self.id))
 				
 		for child in (self.pentrails, self.costumes, self.sounds, 
-					  self.variables, self.blocks, self.scripts, sprites):
+					  variables_node, self.blocks, self.scripts, sprites):
 			stage.append(child)
 		return stage		
 

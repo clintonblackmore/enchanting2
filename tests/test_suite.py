@@ -17,6 +17,7 @@ from sprite import Sprite
 from stage import Stage
 from literal import Literal
 from variable import Variable
+from variables import Variables
 
 import util
 
@@ -127,6 +128,51 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEqual(v.name, "foo")
 		self.assertEqual("hello world", v.as_string())
 		self.assertEqual(v.contents, Literal("hello world"))
+		
+		# We get the AssertionError, but it fails the test.  Strange.
+		#bad_data = ElementTree.XML('<variable name="foo"><unknown>whatzit?</unknown></variable>')
+		#self.assertRaises(AssertionError, v.deserialize(bad_data))
+		
+	def test_literal_variables(self):
+		xml = """<?xml version="1.0"?>
+				<variables>
+					<variable name="number"><l>-37.25</l></variable>
+					<variable name="text"><l>this is text</l></variable>
+					<variable name="null"/>
+				</variables>
+				"""
+				
+		elem = ElementTree.XML(xml)
+		v = Variables()
+		v.deserialize(elem)
+		new_xml = ElementTree.tostring(v.serialize())
+				
+		self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
+	
+	def test_intermediate_variables(self):
+		xml = """<?xml version="1.0"?>
+				<variables>
+					<variable name="number"><l>-37.25</l></variable>
+					<variable name="text"><l>this is text</l></variable>
+					<variable name="bool"><bool>true</bool></variable>
+					<variable name="list">
+						<list id="73">
+							<item><l>1</l></item>
+							<item><l/></item>
+							<item><l>three</l></item>
+						</list>
+					</variable>
+					<variable name="null"/>
+				</variables>
+				"""
+				
+		elem = ElementTree.XML(xml)
+		v = Variables()
+		v.deserialize(elem)
+		new_xml = ElementTree.tostring(v.serialize())
+				
+		self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
+	
 	
 if __name__ == '__main__':
     unittest.main()

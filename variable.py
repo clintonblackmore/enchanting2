@@ -1,3 +1,4 @@
+from xml.etree.cElementTree import Element
 
 from literal import Literal
 
@@ -23,6 +24,7 @@ class Variable:
 				l.deserialize(child)
 				self.contents = l
 			# and so forth with other types
+			assert(self.contents is not None)
 	
 	def serialize(self):
 		"Save out as an element tree"
