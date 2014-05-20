@@ -7,7 +7,9 @@ import util
 class Sprite:
 	"Represents a Snap! Sprite"
 	
-	def __init__(self):
+	def __init__(self, project):
+	
+		self.project = project
 	
 		# "@" attributes
 		self.name = "No name"
@@ -82,3 +84,12 @@ class Sprite:
 			if child is not None:
 				script.append(child)
 		return script		
+
+	def get_variable(self, name):
+		"Gets a variable by name; returns None if it does not exist"
+		v = self.variables.get_variable(name)
+		if v:
+			return v
+		if self.project:
+			return self.project.get_variable(name)
+		return None

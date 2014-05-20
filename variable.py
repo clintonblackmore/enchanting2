@@ -6,9 +6,9 @@ class Variable:
 	"""Represents a value that changes over time.  
 	Contains something like a Literal, Bool, or List"""
 	
-	def __init__(self, contents = None):
+	def __init__(self, contents = None, name = "No name"):
 		self.contents = contents
-		self.name = "No name"
+		self.name = name
 		
 	def deserialize(self, elem):
 		"Load from an xml element tree"

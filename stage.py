@@ -8,7 +8,9 @@ import util
 class Stage:
 	"Represents a Snap! Stage"
 	
-	def __init__(self):
+	def __init__(self, project):
+	
+		self.project = project
 	
 		# "@" attributes
 		self.name = "Stage"
@@ -62,7 +64,7 @@ class Stage:
 		self.sprites = []
 		for child in sprites:
 			if child.tag == "sprite":
-				s = Sprite()
+				s = Sprite(self.project)
 				s.deserialize(child)
 				self.sprites.append(s)
 			else:
@@ -100,4 +102,11 @@ class Stage:
 			stage.append(child)
 		return stage		
 
-	
+	def get_variable(self, name):
+		"Gets a variable by name; returns None if it does not exist"
+		v = self.variables.get_variable(name)
+		if v:
+			return v
+		if self.project:
+			return self.project.get_variable(name)
+		return None

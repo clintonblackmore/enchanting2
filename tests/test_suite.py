@@ -55,22 +55,21 @@ class PyInterpreterTestCase(unittest.TestCase):
 				util.bool_to_string(
 					util.bool_from_string( item )))
 
-	def do_test_serialization_from_all_xml_files_of(self, filenames, klass, findlist = []):
-		self.do_test_serialization_from_files_of(all_xml_files, klass, findlist)
+	def do_test_serialization_from_all_xml_files_of(self, filenames, obj, findlist = []):
+		self.do_test_serialization_from_files_of(all_xml_files, obj, findlist)
 
-	def do_test_serialization_from_files_of(self, filenames, klass, findlist = []):
+	def do_test_serialization_from_files_of(self, filenames, obj, findlist = []):
 		"Using several files, check that we can serialize and deserialize and objects right"
 		for filename in filenames:
-			self.do_test_serialization_of(filename, klass, findlist)
+			self.do_test_serialization_of(filename, obj, findlist)
 
-	def do_test_serialization_of(self, filename, klass, findlist = []):
+	def do_test_serialization_of(self, filename, obj, findlist = []):
 		"Read XML from a file, create an object, write it out, and see if it is the same"
 
 		tree = ElementTree.parse(filename)
 		start_node = tree.getroot()
 		for nodename in findlist:
 			start_node = start_node.find(nodename)
-		obj = klass()
 		obj.deserialize(start_node)
 		clone_node = obj.serialize()
 	
@@ -80,13 +79,13 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 
 	def test_serialization_of_project(self):
-		self.do_test_serialization_from_all_xml_files_of(sample_document, Project, [])
+		self.do_test_serialization_from_all_xml_files_of(sample_document, Project(), [])
 
 	def test_serialization_of_sprite(self):
-		self.do_test_serialization_from_all_xml_files_of(sample_document, Sprite, ["stage", "sprites", "sprite"])
+		self.do_test_serialization_from_all_xml_files_of(sample_document, Sprite(None), ["stage", "sprites", "sprite"])
 
 	def test_serialization_of_stage(self):
-		self.do_test_serialization_from_all_xml_files_of(sample_document, Stage, ["stage"])
+		self.do_test_serialization_from_all_xml_files_of(sample_document, Stage(None), ["stage"])
 	
 	def test_literal_values(self):
 		l = Literal()
@@ -173,7 +172,39 @@ class PyInterpreterTestCase(unittest.TestCase):
 				
 		self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
 	
-	
+	def test_variable_lookup(self):
+		"Do the project, stage, and sprite look up the right variables?"
+		proj = Project()
+		stage = Stage(proj)
+		sprite = Sprite(proj)
+		proj.variables.add(Variable(Literal(777), "proj var"))
+		stage.variables.add(Variable(Literal(555), "stage var"))
+		sprite.variables.add(Variable(Literal(222), "sprite var"))
+		
+		self.assertEqual(proj.variables.variables.keys(), ['proj var'])
+		self.assertEqual(None, proj.get_variable("no such variable"))
+		self.assertNotEqual(None, proj.get_variable("proj var"))
+		self.assertEqual(None, proj.get_variable("stage var"))
+		self.assertEqual(None, proj.get_variable("sprite var"))
+		self.assertEqual(777, proj.get_variable("proj var").as_number())
+
+		self.assertEqual(stage.variables.variables.keys(), ['stage var'])
+		self.assertEqual(None, stage.get_variable("no such variable"))
+		self.assertNotEqual(None, stage.get_variable("proj var"))
+		self.assertNotEqual(None, stage.get_variable("stage var"))
+		self.assertEqual(None, stage.get_variable("sprite var"))
+		self.assertEqual(777, stage.get_variable("proj var").as_number())
+		self.assertEqual(555, stage.get_variable("stage var").as_number())
+		
+		self.assertEqual(sprite.variables.variables.keys(), ['sprite var'])
+		self.assertEqual(None, sprite.get_variable("no such variable"))
+		self.assertNotEqual(None, sprite.get_variable("proj var"))
+		self.assertEqual(None, sprite.get_variable("stage var"))
+		self.assertNotEqual(None, sprite.get_variable("sprite var"))
+		self.assertEqual(777, sprite.get_variable("proj var").as_number())
+		self.assertEqual(222, sprite.get_variable("sprite var").as_number())
+
+		
 if __name__ == '__main__':
     unittest.main()
     

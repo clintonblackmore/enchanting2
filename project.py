@@ -1,5 +1,6 @@
 from xml.etree.cElementTree import Element
 
+from stage import Stage
 from variables import Variables
 
 class Project:
@@ -15,7 +16,7 @@ class Project:
 		# children
 		self.notes = None
 		self.thumbnail = None
-		self.stage = None
+		self.stage = Stage(self)
 		self.hidden = None
 		self.headers = None
 		self.code = None
@@ -35,7 +36,7 @@ class Project:
 		# children
 		self.notes = elem.find("notes")
 		self.thumbnail = elem.find("thumbnail")
-		self.stage = elem.find("stage")
+		self.stage.deserialize(elem.find("stage"))
 		self.hidden = elem.find("hidden")
 		self.headers = elem.find("headers")
 		self.code = elem.find("code")
@@ -48,9 +49,12 @@ class Project:
 		project = Element("project", name=self.name, 
 						  app=self.app, version=self.version)
 		
-		for child in (self.notes, self.thumbnail, self.stage, self.hidden,
-		              self.headers, self.code, self.blocks, 
+		for child in (self.notes, self.thumbnail, self.stage.serialize(), 
+					  self.hidden, self.headers, self.code, self.blocks, 
 		              self.variables.serialize()):
 			project.append(child)
 		return project
 		
+	def get_variable(self, name):
+		"Gets a named variable; returns None if it does not exist"
+		return self.variables.get_variable(name)
