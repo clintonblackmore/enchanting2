@@ -12,14 +12,11 @@ except ImportError:
     import unittest
 
 sys.path.append('..')
-from project import Project
-from sprite import Sprite
-from stage import Stage
-from literal import Literal
-from variable import Variable
-from variables import Variables
 
-import util
+from core import Project, Sprite, Stage, Literal, Variable, Variables
+from core import util
+
+import ops.math
 
 sample_document = "sample_project_no_media.xml"
 all_xml_files = glob.glob('*.xml')
@@ -223,6 +220,9 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEqual(777, sprite.get_variable("proj var").as_number())
 		self.assertEqual(222, sprite.get_variable("sprite var").as_number())
 
+	def test_operation(self):
+		result = ops.math.add(None, (Literal(56), Literal(72)))
+		self.assertEqual(result, Literal(56 + 72))
 		
 if __name__ == '__main__':
     unittest.main()

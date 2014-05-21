@@ -6,8 +6,7 @@ import util
 class Block:
 	"""This is a code block, representing an instruction to execute"""
 	
-	def __init__(self, target):
-		self.target = target	# What entity does this block act on?
+	def __init__(self):
 		self.function = None	# used to actually call the function
 		self.raw_selector = ""	# the original, textual name of the function
 		self.arguments = []
@@ -37,7 +36,7 @@ class Block:
 			block.append(arg.serialize())
 		return block
 		
-	def evaluate(self):
+	def evaluate(self, target):
 		pass
 		# to do
 		
