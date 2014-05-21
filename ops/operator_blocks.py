@@ -1,4 +1,4 @@
-import Math
+import math
 import random
 
 from core import Literal
@@ -26,7 +26,7 @@ def reportModulus(target, args):
 	return Literal(args[0].as_number() % args[1].as_number())
 
 def reportRound(target, args):
-	return Literal(Math.round(args[0].as_number()))
+	return Literal(math.round(args[0].as_number()))
 
 #def reportMonadic(target, args):
 #	"This one does all the functions, like sqrt, etc"
@@ -44,7 +44,7 @@ def reportTrue(target, args):
 	return Literal(True)
 	
 def reportFalse(target, args):
-	report Literal(False)
+	return Literal(False)
 
 # many more to do here
 

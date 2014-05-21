@@ -16,7 +16,7 @@ sys.path.append('..')
 from core import Project, Sprite, Stage, Literal, Variable, Variables
 from core import util
 
-import ops.math
+from ops import bind_to_function
 
 sample_document = "sample_project_no_media.xml"
 all_xml_files = glob.glob('*.xml')
@@ -136,12 +136,12 @@ class PyInterpreterTestCase(unittest.TestCase):
 	
 	def test_variable(self):
 		v = Variable()
-		self.assertEqual(0, v.as_number())
-		self.assertEqual("", v.as_string())
+		self.assertEqual(0, v.value().as_number())
+		self.assertEqual("", v.value().as_string())
 
 		v.deserialize(ElementTree.XML('<variable name="foo"><l>hello world</l></variable>'))
 		self.assertEqual(v.name, "foo")
-		self.assertEqual("hello world", v.as_string())
+		self.assertEqual("hello world", v.value().as_string())
 		self.assertEqual(v.contents, Literal("hello world"))
 		
 		# We get the AssertionError, but it fails the test.  Strange.
@@ -202,27 +202,31 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertNotEqual(None, proj.get_variable("proj var"))
 		self.assertEqual(None, proj.get_variable("stage var"))
 		self.assertEqual(None, proj.get_variable("sprite var"))
-		self.assertEqual(777, proj.get_variable("proj var").as_number())
+		self.assertEqual(777, proj.get_variable("proj var").value().as_number())
 
 		self.assertEqual(stage.variables.variables.keys(), ['stage var'])
 		self.assertEqual(None, stage.get_variable("no such variable"))
 		self.assertNotEqual(None, stage.get_variable("proj var"))
 		self.assertNotEqual(None, stage.get_variable("stage var"))
 		self.assertEqual(None, stage.get_variable("sprite var"))
-		self.assertEqual(777, stage.get_variable("proj var").as_number())
-		self.assertEqual(555, stage.get_variable("stage var").as_number())
+		self.assertEqual(777, stage.get_variable("proj var").value().as_number())
+		self.assertEqual(555, stage.get_variable("stage var").value().as_number())
 		
 		self.assertEqual(sprite.variables.variables.keys(), ['sprite var'])
 		self.assertEqual(None, sprite.get_variable("no such variable"))
 		self.assertNotEqual(None, sprite.get_variable("proj var"))
 		self.assertEqual(None, sprite.get_variable("stage var"))
 		self.assertNotEqual(None, sprite.get_variable("sprite var"))
-		self.assertEqual(777, sprite.get_variable("proj var").as_number())
-		self.assertEqual(222, sprite.get_variable("sprite var").as_number())
+		self.assertEqual(777, sprite.get_variable("proj var").value().as_number())
+		self.assertEqual(222, sprite.get_variable("sprite var").value().as_number())
 
 	def test_operation(self):
-		result = ops.math.add(None, (Literal(56), Literal(72)))
+		fn = bind_to_function("reportSum")
+		result = fn(None, (Literal(56), Literal(72)))
 		self.assertEqual(result, Literal(56 + 72))
+		
+		fn = bind_to_function("nonexistentFunction")
+		self.assertEquals(None, fn)
 		
 if __name__ == '__main__':
     unittest.main()

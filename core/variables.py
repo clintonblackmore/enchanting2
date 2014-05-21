@@ -36,24 +36,6 @@ class Variables:
 		if name in self.variables:
 			return self.variables[name]
 		return None
-
-	def get_value_of(self, name):
-		if name in self.variables:
-			return self.variables[name].contents
-		return Literal()
-		
-	def set(self, name, value):
-		if name in self.variables:
-			self.variables[name].set(value)
-	
-	def increment(self, name, incr):
-		if name in self.variables:
-			self.variables[name].increment(incr)
-
-	def show(self, name, show):
-		# to do -- record if a variable is to be shown or hidden
-		pass
-		
 	
 		
 		

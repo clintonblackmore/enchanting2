@@ -39,5 +39,10 @@ class Block:
 	def evaluate(self, target):
 		pass
 		# to do
+		# it is important that we evaluate the arguments
+		# pack them into an array
+		# remember what they were
+		# and retain the result before passing it on
+		
 		
 		

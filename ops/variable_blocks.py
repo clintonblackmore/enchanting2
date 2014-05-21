@@ -4,26 +4,39 @@ from core import Literal
 
 def var(target, args):
 	name = args[0].as_string()
-	return target.variables.get_value_of(name)
+	v = target.get_variable(name)
+	if v:
+		result = v.value()
+		if result:
+			return result
+	return Literal(None)
 
 def doSetVar(target, args):
 	name, value = (args[0].as_string(), args[1])
-	target.variables.set(name, value)
+	v = target.get_variable(name)
+	if v:
+		v.set(value)
 	return None
 	
 def doChangeVar(target, args):
-	name, value = (args[0].as_string(), args[1])
-	target.variables.increment(name, value)
+	name, incr = (args[0].as_string(), args[1])
+	v = target.get_variable(name)
+	if v:
+		v.set(Literal(v.value().as_number() + incr.as_number()))	
 	return None
 
 def doShowVar(target, args):
 	name = args[0].as_string()
-	target.variables.show(name, True)
+	v = target.get_variable(name)
+	if v:
+		v.show(True)
 	return None
 
 def doHideVar(target, args):
 	name = args[0].as_string()
-	target.variables.show(name, False)
+	v = target.get_variable(name)
+	if v:
+		v.show(False)
 	return None
 
 

@@ -1,5 +1,6 @@
 from xml.etree.cElementTree import Element
 
+from literal import Literal
 import factory
 
 class Variable:
@@ -32,19 +33,16 @@ class Variable:
 		"Sets a variable.  Pass in a Literal or other object as a value"
 		self.contents = value
 		# to do -- record if there has been a change
-		
-	def increment(self, incr):
-		self.set(self.as_number() + incr.as_number())
-		
-	def as_number(self):
+				
+	def value(self):
 		if self.contents is not None:
-			return self.contents.as_number()
-		return 0
+			return self.contents
+		return Literal(None)
 			
-	def as_string(self):
-		if self.contents is not None:
-			return self.contents.as_string()
-		return ""
-	
+	def show(self, visible):
+		# to do -- record if a variable is to be shown or hidden
+		pass
+		
+
 	
 			
