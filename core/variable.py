@@ -28,6 +28,14 @@ class Variable:
 			variable.append(self.contents.serialize())
 		return variable
 		
+	def set(self, value):
+		"Sets a variable.  Pass in a Literal or other object as a value"
+		self.contents = value
+		# to do -- record if there has been a change
+		
+	def increment(self, incr):
+		self.set(self.as_number() + incr.as_number())
+		
 	def as_number(self):
 		if self.contents is not None:
 			return self.contents.as_number()

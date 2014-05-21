@@ -10,12 +10,7 @@ class Variables:
 		# ordered dict so we can serialize in the order we deserialized
 		# (possibly doesn't really matter, but it helps with the unit tests)
 		self.variables = OrderedDict()	
-		
-	def get_variable(self, name):
-		if name in self.variables:
-			return self.variables[name]
-		return None
-		
+				
 	def add(self, v):
 		self.variables[v.name] = v
 		
@@ -37,5 +32,28 @@ class Variables:
 			variables.append(child.serialize())
 		return variables
 
+	def get_variable(self, name):
+		if name in self.variables:
+			return self.variables[name]
+		return None
+
+	def get_value_of(self, name):
+		if name in self.variables:
+			return self.variables[name].contents
+		return Literal()
+		
+	def set(self, name, value):
+		if name in self.variables:
+			self.variables[name].set(value)
 	
+	def increment(self, name, incr):
+		if name in self.variables:
+			self.variables[name].increment(incr)
+
+	def show(self, name, show):
+		# to do -- record if a variable is to be shown or hidden
+		pass
+		
 	
+		
+		
