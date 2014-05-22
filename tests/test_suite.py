@@ -16,7 +16,9 @@ sys.path.append('..')
 from core import Project, Sprite, Stage, Literal, Variable, Variables
 from core import util
 
-from ops import bind_to_function
+#from ops import bind_to_function
+#import ops.utilities.bind_to_function as bind_to_function
+import ops
 
 sample_document = "sample_project_no_media.xml"
 all_xml_files = glob.glob('*.xml')
@@ -221,11 +223,11 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEqual(222, sprite.get_variable("sprite var").value().as_number())
 
 	def test_operation(self):
-		fn = bind_to_function("reportSum")
+		fn = ops.utilities.bind_to_function("reportSum")
 		result = fn(None, (Literal(56), Literal(72)))
 		self.assertEqual(result, Literal(56 + 72))
 		
-		fn = bind_to_function("nonexistentFunction")
+		fn = ops.utilities.bind_to_function("nonexistentFunction")
 		self.assertEquals(None, fn)
 		
 if __name__ == '__main__':

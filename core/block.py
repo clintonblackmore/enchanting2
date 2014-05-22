@@ -1,5 +1,8 @@
 from xml.etree.cElementTree import Element
 
+#from ops import bind_to_function
+#import ops.utilities.bind_to_function as bind_to_function
+
 import factory
 import util
 
@@ -8,22 +11,14 @@ class Block:
 	
 	def __init__(self):
 		self.function = None	# used to actually call the function
-		self.raw_selector = ""	# the original, textual name of the function
+		self.function_name = ""	# the original, textual name of the function
 		self.arguments = []
-				
-	def find_function(self, selector):
-		self.raw_selector = selector
-		try:
-			self.function = getattr(self.target, selector)
-		except AttributeError:
-			self.function = None
-				
+								
 	def deserialize(self, elem):
 		"Load from an xml element tree"
 		assert(elem.tag == "block") # or elem.tag == "custom-block")
-		if elem.tag == "block":
-			self.set_value(elem.text)
-		self.find_function(elem.get("s"))	
+		self.function_name = elem.get("s")
+		self.function = ops.bind_to_function(self.function_name)
 			
 		self.arguments.clear()
 		for child in elem:
@@ -31,18 +26,19 @@ class Block:
 	
 	def serialize(self):
 		"Save out as an element tree"
-		block = Element("block", s=self.raw_selector)
+		block = Element("block", s=self.function_name)
 		for arg in self.arguments:
 			block.append(arg.serialize())
 		return block
 		
 	def evaluate(self, target):
-		pass
-		# to do
-		# it is important that we evaluate the arguments
-		# pack them into an array
-		# remember what they were
-		# and retain the result before passing it on
+		# evaluate each of the arguments
+		args = [arg.evaluate(target) for arg in self.arguments]
 		
+		# now, run this function
+		result = self.function(target, args)		
+	
+		# to do -- save args and result with timestamp
 		
+		return result
 		

@@ -51,6 +51,10 @@ class Literal:
 	def __eq__(self, other):
 		return self.value == other.value
 		
+	def evaluate(self, target):
+		"Literals are already evaluated, but the caller doesn't know that"
+		return self
+		
 	# expose as different types
 	def as_number(self):
 		try:
