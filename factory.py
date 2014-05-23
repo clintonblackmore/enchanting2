@@ -11,12 +11,14 @@ def deserialize_value(element, target = None):
 	
 	class_map = { "l" : data.Literal, 
 				  "bool" : data.Literal, 
+				  "color" : data.Color,
+				  "comment" : data.Comment,
 				  "list" : data.List,
 				  "block" : script.Block,
 				  "script" : script.Script 
 				}
 	
-	if element.tag == "script":
+	if element.tag == "color":
 		ElementTree.dump(element)
 				
 	item = class_map[element.tag]()

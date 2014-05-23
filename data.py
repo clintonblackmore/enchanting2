@@ -115,7 +115,69 @@ class Literal(object):
 	
 	# may need to add things like bool, nil, function, etc.
 	
+class Color(object):
+	"""Represents a color.
+	
+	Note: at the moment, we don't care about what it means
+	We just want to be able to read it and write it back to the xml
+	
+	Sample XML: <color>200,200,200,1</color>
+	
+	We may potentially deal with this case, too, in the future:
+	<someelem ... color="243,118,29" ... />
+	"""
+	
+	def __init__(self):
+		self.color_string = None
+				
+	def deserialize(self, elem):
+		"Load from an xml element tree"
+		assert(elem.tag == "color")
+		self.color_string = elem.text
+	
+	def serialize(self):
+		"Save out as an element tree"
+		color = Element("color")
+		color.text = self.color_string
+		return color
+		
+	def __eq__(self, other):
+		return self.color_string == other.color_string
+		
+	def evaluate(self, target):
+		"Colors are already evaluated, but the caller doesn't know that"
+		return self
+		
+	# expose as different types
+	def as_number(self):
+		return 0
 
+	def as_string(self):
+		return self.color_string
+		
+	def as_bool(self):
+		return False
+		
+class Comment(object):
+	"""This is a comment off to the side of a block.  Example XML:
+	<block s="receiveGo">
+		<comment w="90" collapsed="false">rear right rotor</comment>
+	</block>
+	at present, we do nothing with a comment except store it.
+	"""
+			
+	def __init__(self):
+		self.comment_node = None
+				
+	def deserialize(self, elem):
+		"Load from an xml element tree"
+		assert(elem.tag == "comment")
+		self.comment_node = elem
+	
+	def serialize(self):
+		"Save out as an element tree"
+		return self.comment_node
+					
 
 class List(object):
 	"""Represents a list.

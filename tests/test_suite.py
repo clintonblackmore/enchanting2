@@ -28,7 +28,7 @@ all_xml_files = glob.glob('*.xml')
 def normalized_xml(xml):
 	"We convert the xml to an object tree and back and return the result, without whitespace"
 	obj = objectify.fromstring(xml)
-	return etree.tostring(obj)
+	return etree.tostring(obj, pretty_print = True)
 	    
 class PyInterpreterTestCase(unittest.TestCase):
 
