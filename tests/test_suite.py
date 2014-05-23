@@ -1,5 +1,7 @@
 import sys
+import os
 import glob
+import six
 
 from xml.etree import cElementTree as ElementTree
 
@@ -7,9 +9,9 @@ from lxml import etree
 from lxml import objectify
 
 try:
-    import unittest2 as unittest
+	import unittest2 as unittest
 except ImportError:
-    import unittest
+	import unittest
 
 sys.path.append('..')
 
@@ -28,7 +30,35 @@ all_xml_files = glob.glob('*.xml')
 def normalized_xml(xml):
 	"We convert the xml to an object tree and back and return the result, without whitespace"
 	obj = objectify.fromstring(xml)
+	search_tree_for_anomalies(obj)
 	return etree.tostring(obj, pretty_print = True)
+
+def clean_output_directories():
+	"Make sure that output directories exist and are empty"
+	script_dir = os.path.dirname(os.path.abspath(__file__))
+	for subdir in ("original_xml", "serialized_xml"):
+		absolute_subdir = os.path.join(script_dir, subdir)
+		if not os.path.isdir(absolute_subdir):
+			os.mkdir(absolute_subdir)
+		else:
+			for filename in os.listdir(absolute_subdir):
+				file_path = os.path.join(absolute_subdir, filename)
+				try:
+					if os.path.isfile(file_path):
+						os.unlink(file_path)
+				except Exception, e:
+					print e
+	 
+def search_tree_for_anomalies(tree):
+	for elem in tree.getiterator():
+		print_ancestry = False
+		if elem is None:
+			print "None elem found"
+		else:
+			for key in elem.keys():
+				value = elem.get(key)
+				if not isinstance(value, six.string_types):
+					print "In %s found bad attr val: %s -> %s" % (elem.tag, key, repr(value))
 	    
 class PyInterpreterTestCase(unittest.TestCase):
 
@@ -37,6 +67,19 @@ class PyInterpreterTestCase(unittest.TestCase):
 			self.assertEqual(item, 
 				data.number_from_string( 
 					data.number_to_string( item ))) 
+
+	def compare_xml(self, xml, new_xml, save_to_files, test_file_name):
+		"Compare the old and new XML, and write them to files for diffing on request"
+		xml = normalized_xml(xml)
+		new_xml = normalized_xml(new_xml)
+		if save_to_files:
+			script_dir = os.path.dirname(os.path.abspath(__file__))
+			for subdir, data in (("original_xml", xml), ("serialized_xml", new_xml)):
+				filename = os.path.join(script_dir, subdir, test_file_name)
+				with open(filename, 'w') as f:
+					f.write(data)
+		self.assertEqual(xml, new_xml)
+
 
 	def test_boolean_to_string_conversion(self):
 	
@@ -73,10 +116,18 @@ class PyInterpreterTestCase(unittest.TestCase):
 		obj.deserialize(start_node)
 		clone_node = obj.serialize()
 	
-		self.assertEqual(
-			normalized_xml(ElementTree.tostring(start_node)),
-			normalized_xml(ElementTree.tostring(clone_node)))    
+		search_tree_for_anomalies(clone_node)
+	
+		self.compare_xml(
+			ElementTree.tostring(start_node),
+			ElementTree.tostring(clone_node),
+			True, 
+			"".join((obj.__class__.__name__, "_", filename)))
 
+	def do_test_using_factory(self, xml, filename):
+		obj = factory.deserialize_value(ElementTree.XML(xml))		
+		new_xml = ElementTree.tostring(obj.serialize())
+		self.compare_xml(xml, new_xml, True, filename)
 
 	def test_serialization_of_project(self):
 		self.do_test_serialization_from_all_xml_files_of(Project(), [])
@@ -136,6 +187,32 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEqual("false", l.as_string())
 		self.assertEqual(False, l.as_bool())		
 
+	def test_literal_with_option(self):
+		xml = "<l><option>space</option></l>"
+		l = Literal()
+		l.deserialize(ElementTree.XML(xml))
+		new_xml = ElementTree.tostring(l.serialize())
+		self.compare_xml(xml, new_xml, True, "literal_option.xml")
+
+	def test_list_with_items(self):
+		xml = """
+			<list id="73">
+				<item><l>1</l></item>
+				<item><l/></item>
+				<item><l>three</l></item>
+			</list>
+		"""
+		self.do_test_using_factory(xml, "list_with_items.xml")
+
+	def test_list_without_items(self):
+		xml = """
+			<list id="73">
+				<l>1</l>
+				<l/>
+				<l>three</l>
+			</list>
+		"""
+		self.do_test_using_factory(xml, "list_without_items.xml")
 	
 	def test_variable(self):
 		v = Variable()
@@ -165,7 +242,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 		v.deserialize(elem)
 		new_xml = ElementTree.tostring(v.serialize())
 				
-		self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
+		self.compare_xml(xml, new_xml, True, "literals_simple.xml")
 	
 	def test_intermediate_variables(self):
 		xml = """<?xml version="1.0"?>
@@ -189,7 +266,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 		v.deserialize(elem)
 		new_xml = ElementTree.tostring(v.serialize())
 				
-		self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
+		self.compare_xml(xml, new_xml, True, "literals_intermediate.xml")
 	
 	def test_variable_lookup(self):
 		"Do the project, stage, and sprite look up the right variables?"
@@ -267,9 +344,10 @@ class PyInterpreterTestCase(unittest.TestCase):
 		sprite.deserialize(elem)
 		new_xml = ElementTree.tostring(sprite.serialize())
 				
-		# doesn't seem to put out properties in same order -- very strange.
-		#self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
-
+		# for reasons I don't understand, the normalized XML has
+		# the same data but doesn't output the script's attributes 
+		# in the same order -- so I'm turning off this test.
+		#self.compare_xml(xml, new_xml, True, "script.xml")
 		
 		self.assertEqual(sprite.get_variable("c").value().as_number(), 0)
 		
@@ -279,5 +357,6 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 	
 if __name__ == '__main__':
-    unittest.main()
+	clean_output_directories()
+	unittest.main()
     

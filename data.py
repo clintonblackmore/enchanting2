@@ -53,6 +53,7 @@ class Literal(object):
 	
 	def __init__(self, value = None):
 		self.set_value(value)
+		self.is_option = False	# Is this an option selected from a combo box?
 		
 	def set_value(self, value):
 		"In order of priority, value is a boolean, number, or string"
@@ -67,8 +68,14 @@ class Literal(object):
 	def deserialize(self, elem):
 		"Load from an xml element tree"
 		assert(elem.tag == "l" or elem.tag == "bool")
+				
 		if elem.tag == "l":
-			self.set_value(elem.text)
+			option_node = elem.find("option")
+			if option_node is not None:
+				self.is_option = True
+				self.set_value(option_node.text)
+			else:		
+				self.set_value(elem.text)
 		else: # elem.tag == "bool":
 			self.set_value(elem.text == "true")
 	
@@ -77,14 +84,17 @@ class Literal(object):
 		if isinstance(self.value, bool):
 			literal = Element("bool")
 			literal.text = self.as_string()
-			return literal
-
-		literal = Element("l")
-		if self.value is not None:
-			if isinstance(self.value, float):
-				literal.text = number_to_string(self.value)
-			else:
-				literal.text = str(self.value)
+		else:
+			literal = Element("l")
+			if self.is_option:
+				option = Element("option")
+				option.text = str(self.value)
+				literal.append(option)
+			elif self.value is not None:
+				if isinstance(self.value, float):
+					literal.text = number_to_string(self.value)
+				else:
+					literal.text = str(self.value)
 		return literal
 		
 	def __eq__(self, other):
@@ -188,28 +198,60 @@ class List(object):
 		<item><l>1</l></item>
 		<item><l/></item>
 		<item><l>three</l></item>
-	</list>"""
+	</list>
+	
+	when used as the value of a variable, but like this:
+	
+	<block s="reportNewList">
+		<list>
+			<l>1</l>
+			</l>
+			<l>three</l>
+		</list>
+	</block>
+
+	when created as a literal value.  
+	(We of course do not parse the 'block' part.)
+	
+	"""
 	
 	
 	def __init__(self):
 		self.list = []
-		self.id = -1
+		self.id = None
+		self.broken_into_items = False
 		
 	def deserialize(self, elem):
 		"Load from an xml element tree"
 		assert(elem.tag == "list")
 		self.id = elem.get("id")
-		for item in elem:
-			self.list.append(factory.deserialize_value(item[0]))
+
+		"Does this list use <item> tags?"		
+		if elem.find("item"):
+			self.broken_into_items = True
+			self.list = [factory.deserialize_value(item[0])
+		                 for item in elem]
+		else:
+			self.broken_into_items = False
+			self.list = [factory.deserialize_value(item)
+		                 for item in elem]
 		
 	def serialize(self):
 		"Save out as an element tree"
-		lst = Element("list", id=self.id)
+		list_node = Element("list")
+		if self.id is not None:
+			list_node.set("id", self.id)
+		
 		for entry in self.list:
-			item = Element("item")
-			item.append(entry.serialize())
-			lst.append(item)
-		return lst
+			datum_node = entry.serialize()
+			if not self.broken_into_items:
+				list_node.append(datum_node)
+			else:
+				item_node = Element("item")
+				item_node.append(datum_node)
+				list_node.append(item_node)
+				
+		return list_node
 			
 	def as_number(self):
 		return 0

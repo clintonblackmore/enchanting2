@@ -6,7 +6,7 @@ import script
 import xml.etree.cElementTree as ElementTree
 
 
-def deserialize_value(element, target = None):
+def deserialize_value(element):
 	"Get an object representing this element, be it a literal, list or what-not"
 	
 	class_map = { "l" : data.Literal, 
@@ -18,9 +18,9 @@ def deserialize_value(element, target = None):
 				  "script" : script.Script 
 				}
 	
-	if element.tag == "color":
-		ElementTree.dump(element)
-				
+	#if element.tag == "list":
+	#	ElementTree.dump(element)
+								
 	item = class_map[element.tag]()
 	item.deserialize(element)
 	return item

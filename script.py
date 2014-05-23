@@ -65,11 +65,9 @@ class Script(object):
 	
 	def __init__(self):
 	
-		# a script within a script does not have any attributes
-		self.embedded_script = False
-	
-		self.x = 0
-		self.y = 0
+		# Only top-level scripts contain x and y values
+		self.x = None
+		self.y = None
 
 		self.blocks = []
 		
@@ -80,10 +78,8 @@ class Script(object):
 		assert(elem.tag == "script")
 
 		# attributes
-		self.embedded_script = elem.get("X") is None
-		if not self.embedded_script:
-			self.x = int(elem.get("x"))
-			self.y = int(elem.get("y"))
+		self.x = elem.get("x")
+		self.y = elem.get("y")
 
 		# our children are a sequence of blocks or custom blocks
 		self.blocks = []
@@ -96,12 +92,10 @@ class Script(object):
 		"Return an elementtree representing this object"
 		
 		# We have sprite objects and watcher nodes; make a tree of nodes
-		if not self.embedded_script:
-			script = Element("script", 
-							 x=data.number_to_string(self.x), 
-							 y=data.number_to_string(self.y))
-		else:
+		if self.x is None or self.y is None:
 			script = Element("script")
+		else:
+			script = Element("script", x=self.x, y=self.y)
 					
 		for block in self.blocks:
 			script.append(block.serialize())
