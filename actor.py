@@ -10,14 +10,58 @@
 from xml.etree.cElementTree import Element
 
 import data
+import script
 
-class Sprite:
+class BaseActor(object):
+	"Common things between Sprite and Stage"
+	def __init__(self, project):
+			
+		self.project = project
+	
+		self.costumes = None
+		self.sounds = None
+		self.variables = data.Variables()
+		self.blocks = None
+		self.scripts = []
+	
+	def deserialize(self, elem):
+		"Loads this class from an element tree representation"
+		assert(elem.tag in ("stage", "sprite"))
+		
+		# children
+		self.costumes = elem.find("costumes")
+		self.sounds = elem.find("sounds")
+		self.variables.deserialize(elem.find("variables"))
+		self.blocks = elem.find("blocks")
+		self.scripts = []
+		for item in elem.find("scripts"):
+			s = script.Script()
+			s.deserialize(item)
+			self.scripts.append(s)
+
+	def serialize_scripts(self):
+		"Returns a script node for use in serialization"
+		scripts_node = Element("scripts")
+		for item in self.scripts:
+			scripts_node.append(item.serialize())
+		return scripts_node
+
+	def get_variable(self, name):
+		"Gets a variable by name; returns None if it does not exist"
+		v = self.variables.get_variable(name)
+		if v:
+			return v
+		if self.project:
+			return self.project.get_variable(name)
+		return None
+
+
+class Sprite(BaseActor):
 	"Represents a Snap! Sprite"
 	
 	def __init__(self, project):
-	
-		self.project = project
-	
+		super(Sprite, self).__init__(project=project)
+
 		# "@" attributes
 		self.name = "No name"
 		self.idx = -1
@@ -32,19 +76,16 @@ class Sprite:
 		self.pen = "tip"
 		self.id = -1
 		
-		# children
+		# children specific to sprite
 		self.nest = None	# optional child
-		self.costumes = None
-		self.sounds = None
-		self.variables = data.Variables()
-		self.blocks = None
-		self.scripts = None
 	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
 		
 		assert(elem.tag == "sprite")
-			
+
+		super(Sprite, self).deserialize(elem)
+
 		# attributes
 		self.name = elem.get("name")
 		self.idx  = int(elem.get("idx"))
@@ -59,20 +100,16 @@ class Sprite:
 		self.pen = elem.get("pen")
 		self.id = int(elem.get("id"))
 		
-		# children
+		# unique children
 		self.nest = elem.find("nest")
-		self.costumes = elem.find("costumes")
-		self.sounds = elem.find("sounds")
-		self.variables.deserialize(elem.find("variables"))
-		self.blocks = elem.find("blocks")
-		self.scripts = elem.find("scripts")
 
 	def serialize(self):
 		"Return an elementtree representing this object"
 		
 		variables_node = self.variables.serialize()
+		scripts_node = self.serialize_scripts()
 		
-		script = Element("sprite", 
+		sprite = Element("sprite", 
 						name = self.name, 
 					  	idx = data.number_to_string(self.idx),
 						x = data.number_to_string(self.x),
@@ -87,29 +124,19 @@ class Sprite:
 						id = data.number_to_string(self.id))
 		
 		for child in (self.nest, self.costumes, self.sounds, 
-					  variables_node, self.blocks, self.scripts):
+					  variables_node, self.blocks, scripts_node):
 			if child is not None:
-				script.append(child)
-		return script		
-
-	def get_variable(self, name):
-		"Gets a variable by name; returns None if it does not exist"
-		v = self.variables.get_variable(name)
-		if v:
-			return v
-		if self.project:
-			return self.project.get_variable(name)
-		return None
+				sprite.append(child)
+		return sprite		
 
 
-
-class Stage:
+class Stage(BaseActor):
 	"Represents a Snap! Stage"
 	
 	def __init__(self, project):
 	
-		self.project = project
-	
+		super(Stage, self).__init__(project=project)
+
 		# "@" attributes
 		self.name = "Stage"
 		self.width = 480
@@ -122,19 +149,15 @@ class Stage:
 		self.scheduled = True
 		self.id = -1
 		
-		# children
-		# Note: sprites have all the same children, except for pentrails and sprites
+		# unique children
 		self.pentrails = None	# unique to stage
-		self.costumes = None
-		self.sounds = None
-		self.variables = data.Variables()
-		self.blocks = None
-		self.scripts = None
-		self.sprites = None		# unique to stage		
+		self.sprites = []		# unique to stage		
 	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
 		assert(elem.tag == "stage")
+
+		super(Stage, self).deserialize(elem)
 
 		# attributes
 		self.name = elem.get("name")
@@ -148,13 +171,8 @@ class Stage:
 		self.scheduled = data.bool_from_string(elem.get("scheduled"))
 		self.id = int(elem.get("id"))
 		
-		# children
+		# unique children
 		self.pentrails = elem.find("pentrails")
-		self.costumes = elem.find("costumes")
-		self.sounds = elem.find("sounds")
-		self.variables.deserialize(elem.find("variables"))
-		self.blocks = elem.find("blocks")
-		self.scripts = elem.find("scripts")
 				
 		# The sprites and divided into sprite and watcher elements; 
 		# keep them all in order
@@ -182,6 +200,7 @@ class Stage:
 				sprites.append(item)
 		
 		variables_node = self.variables.serialize()
+		scripts_node = self.serialize_scripts()
 		
 		stage = Element("stage", 
 						name = self.name,
@@ -196,19 +215,9 @@ class Stage:
 						id = data.number_to_string(self.id))
 				
 		for child in (self.pentrails, self.costumes, self.sounds, 
-					  variables_node, self.blocks, self.scripts, sprites):
+					  variables_node, self.blocks, scripts_node, sprites):
 			stage.append(child)
 		return stage		
-
-	def get_variable(self, name):
-		"Gets a variable by name; returns None if it does not exist"
-		v = self.variables.get_variable(name)
-		if v:
-			return v
-		if self.project:
-			return self.project.get_variable(name)
-		return None
-
 
 
 

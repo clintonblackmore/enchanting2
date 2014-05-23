@@ -17,6 +17,7 @@ import data
 from data import Literal, List, Variable, Variables
 from script import Block, Script
 from actor import Stage, Sprite, Project
+import factory
 
 import ops
 
@@ -54,7 +55,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 				data.bool_to_string(
 					data.bool_from_string( item )))
 
-	def do_test_serialization_from_all_xml_files_of(self, filenames, obj, findlist = []):
+	def do_test_serialization_from_all_xml_files_of(self, obj, findlist = []):
 		self.do_test_serialization_from_files_of(all_xml_files, obj, findlist)
 
 	def do_test_serialization_from_files_of(self, filenames, obj, findlist = []):
@@ -78,13 +79,13 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 
 	def test_serialization_of_project(self):
-		self.do_test_serialization_from_all_xml_files_of(sample_document, Project(), [])
+		self.do_test_serialization_from_all_xml_files_of(Project(), [])
 
 	def test_serialization_of_sprite(self):
-		self.do_test_serialization_from_all_xml_files_of(sample_document, Sprite(None), ["stage", "sprites", "sprite"])
+		self.do_test_serialization_from_all_xml_files_of(Sprite(None), ["stage", "sprites", "sprite"])
 
 	def test_serialization_of_stage(self):
-		self.do_test_serialization_from_all_xml_files_of(sample_document, Stage(None), ["stage"])
+		self.do_test_serialization_from_all_xml_files_of(Stage(None), ["stage"])
 	
 	def test_literal_values(self):
 		l = Literal()
@@ -230,6 +231,53 @@ class PyInterpreterTestCase(unittest.TestCase):
 		fn = ops.bind_to_function("nonexistentFunction")
 		self.assertEquals(None, fn)
 		
+	def test_script(self):
+		"""Runs a small script to see if it works.
+		
+		This script is, in effect:
+		a = 5
+		b = -7
+		c = a * a
+		c += b * b
+		
+		The expected result is c = 5 * 5 + (-7)*(-7) = 25+49 = 74"""
+		
+		xml = """
+			<sprite name="Sprite" idx="1" x="0" y="0" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="8">
+				<variables>
+					<variable name="a"><l>5</l></variable>
+					<variable name="b"><l>-7</l></variable>
+					<variable name="c"><l>0</l></variable>
+				</variables>
+				<scripts>
+					<script x="72" y="121">
+						<block s="doSetVar"><l>c</l>
+							<block s="reportProduct"><block var="a"/><block var="a"/></block>
+						</block>
+						<block s="doChangeVar"><l>c</l>
+							<block s="reportProduct"><block var="b"/><block var="b"/></block>
+						</block>
+					</script>
+				</scripts>
+			</sprite>
+		"""
+
+		elem = ElementTree.XML(xml)
+		sprite = Sprite(None)
+		sprite.deserialize(elem)
+		new_xml = ElementTree.tostring(sprite.serialize())
+				
+		# doesn't seem to put out properties in same order -- very strange.
+		#self.assertEqual(normalized_xml(xml), normalized_xml(new_xml))   
+
+		
+		self.assertEqual(sprite.get_variable("c").value().as_number(), 0)
+		
+		sprite.scripts[0].run(sprite)
+		
+		self.assertEqual(sprite.get_variable("c").value().as_number(), 74)
+
+	
 if __name__ == '__main__':
     unittest.main()
     

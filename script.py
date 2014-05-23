@@ -7,36 +7,49 @@
 from xml.etree.cElementTree import Element
 
 import data
+import factory
 import ops
 
-class Block:
+class Block(object):
 	"""This is a code block, representing an instruction to execute"""
 	
 	def __init__(self):
 		self.function = None	# used to actually call the function
 		self.function_name = ""	# the original, textual name of the function
 		self.arguments = []
+		self.var_name = None	# only set if this is a 'var' block
 								
 	def deserialize(self, elem):
 		"Load from an xml element tree"
 		assert(elem.tag == "block") # or elem.tag == "custom-block")
 		self.function_name = elem.get("s")
+		if self.function_name is None:
+			# there is no function name; this must be a var block
+			self.var_name = elem.get("var")
+			self.function_name = "var"		
 		self.function = ops.bind_to_function(self.function_name)
 			
-		self.arguments.clear()
-		for child in elem:
-			self.arguments.append(data.deserialize_value(child))
+		self.arguments = [factory.deserialize_value(child) 
+		                  for child in elem]
 	
 	def serialize(self):
 		"Save out as an element tree"
-		block = Element("block", s=self.function_name)
+		if self.var_name is None:
+			# this is a standard block
+			block = Element("block", s=self.function_name)
+		else:
+			# this is a var block
+			block = Element("block", var=self.var_name)
 		for arg in self.arguments:
 			block.append(arg.serialize())
 		return block
 		
 	def evaluate(self, target):
 		# evaluate each of the arguments
-		args = [arg.evaluate(target) for arg in self.arguments]
+		if self.var_name is None:
+			args = [arg.evaluate(target) for arg in self.arguments]
+		else:
+			args = self.var_name
 		
 		# now, run this function
 		result = self.function(target, args)		
@@ -47,12 +60,13 @@ class Block:
 
 
 
-class Script:
+class Script(object):
 	"Represents a sequence of instructions"
 	
-	def __init__(self, target):
+	def __init__(self):
 	
-		self.target = target	# this is a sprite or stage that we modify
+		# a script within a script does not have any attributes
+		self.embedded_script = False
 	
 		self.x = 0
 		self.y = 0
@@ -66,10 +80,13 @@ class Script:
 		assert(elem.tag == "script")
 
 		# attributes
-		self.x = int(elem.get("x"))
-		self.y = int(elem.get("y"))
+		self.embedded_script = elem.get("X") is None
+		if not self.embedded_script:
+			self.x = int(elem.get("x"))
+			self.y = int(elem.get("y"))
 
 		# our children are a sequence of blocks or custom blocks
+		self.blocks = []
 		for block in elem:
 			b = Block()
 			b.deserialize(block)
@@ -79,29 +96,30 @@ class Script:
 		"Return an elementtree representing this object"
 		
 		# We have sprite objects and watcher nodes; make a tree of nodes
-		script = Element("script", 
-						 x=data.number_to_string(self.x), 
-						 y=data.number_to_string(self.y))
-		
+		if not self.embedded_script:
+			script = Element("script", 
+							 x=data.number_to_string(self.x), 
+							 y=data.number_to_string(self.y))
+		else:
+			script = Element("script")
+					
 		for block in self.blocks:
 			script.append(block.serialize())
 						
 		return script	
 
-	def step(self):
+	def step(self, target):
 		"Execute a line of code; raises StopIteration when there is no more code"
-		self.block[self.code_index].evaluate(self.target)
-		
 		if not self.code_pos:
 			self.code_pos = self.blocks.__iter__()
 		current_block = self.code_pos.next()
-		current_block.evaluate()
+		current_block.evaluate(target)
 		
-	def run(self):
+	def run(self, target):
 		"Runs the code until it is done (if it ever finishes)"
 		try:
 			while True:
-				self.step()
+				self.step(target)
 		except StopIteration:
 			pass
 				

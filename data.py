@@ -11,6 +11,8 @@ It includes:
 from xml.etree.cElementTree import Element
 from collections import OrderedDict
 
+import factory
+
 # Utility functions
 
 def number_from_string(s):
@@ -38,15 +40,8 @@ def bool_to_string(b):
 		return "true"
 	return "false"
 
-def deserialize_value(element):
-	"Get an object representing this element, be it a literal, list or what-not"
-	class_map = { "l" : Literal, "bool" : Literal, "list" : List }
-	item = class_map[element.tag]()
-	item.deserialize(element)
-	return item
 
-
-class Literal:
+class Literal(object):
 	"""Represents a single value.
 	It might be a number, a boolean, a string, or so on.
 	It is not a variable, and has no name."""
@@ -122,7 +117,7 @@ class Literal:
 	
 
 
-class List:
+class List(object):
 	"""Represents a list.
 	
 	A sample list in xml might look like:
@@ -143,7 +138,7 @@ class List:
 		assert(elem.tag == "list")
 		self.id = elem.get("id")
 		for item in elem:
-			self.list.append(deserialize_value(item[0]))
+			self.list.append(factory.deserialize_value(item[0]))
 		
 	def serialize(self):
 		"Save out as an element tree"
@@ -165,7 +160,7 @@ class List:
 		
 
 
-class Variable:
+class Variable(object):
 	"""Represents a value that changes over time.  
 	Contains something like a Literal, Bool, or List"""
 	
@@ -181,7 +176,7 @@ class Variable:
 		# We should have one child
 		self.contents = None
 		if len(elem) > 0:
-			self.contents = deserialize_value(elem[0])
+			self.contents = factory.deserialize_value(elem[0])
 			assert(self.contents is not None)
 	
 	def serialize(self):
@@ -207,7 +202,7 @@ class Variable:
 		
 
 
-class Variables:
+class Variables(object):
 	"""This is a collection of 'Variable' objects, as used by the project, stage, and sprites"""
 	
 	def __init__(self):

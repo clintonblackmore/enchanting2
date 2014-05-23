@@ -2,8 +2,9 @@ import data
 
 """These are the orange 'variable' blocks"""
 
-def var(target, args):
-	name = args[0].as_string()
+def var(target, name):
+	"""We expect a variable 'name', not the regular 'args' parameter,
+	as the XML for this block is different."""
 	v = target.get_variable(name)
 	if v:
 		result = v.value()
