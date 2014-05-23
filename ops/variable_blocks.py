@@ -1,4 +1,4 @@
-from core import Literal
+import data
 
 """These are the orange 'variable' blocks"""
 
@@ -9,7 +9,7 @@ def var(target, args):
 		result = v.value()
 		if result:
 			return result
-	return Literal(None)
+	return data.Literal(None)
 
 def doSetVar(target, args):
 	name, value = (args[0].as_string(), args[1])
@@ -22,7 +22,7 @@ def doChangeVar(target, args):
 	name, incr = (args[0].as_string(), args[1])
 	v = target.get_variable(name)
 	if v:
-		v.set(Literal(v.value().as_number() + incr.as_number()))	
+		v.set(data.Literal(v.value().as_number() + incr.as_number()))	
 	return None
 
 def doShowVar(target, args):

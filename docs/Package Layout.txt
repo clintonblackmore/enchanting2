@@ -1,0 +1,42 @@
+Due to circular dependancies, enchanting2 has been refactored as follows:
+
+data
+ factory
+ Literal
+ List
+ Variable
+ Variables
+
+ops
+ operations
+ variables
+ etc
+
+used by:
+ 
+exec
+ block
+ blocks
+ script
+ scripts
+
+used by:
+
+media
+ Sounds
+ Costumes
+
+used by:
+ 
+actor
+ BaseActor
+ Stage
+ Sprite
+ Sprites
+
+
+ Project
+ 
+
+
+

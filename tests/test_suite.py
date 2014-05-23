@@ -13,11 +13,11 @@ except ImportError:
 
 sys.path.append('..')
 
-from core import Project, Sprite, Stage, Literal, Variable, Variables
-from core import util
+import data
+from data import Literal, List, Variable, Variables
+from script import Block, Script
+from actor import Stage, Sprite, Project
 
-#from ops import bind_to_function
-#import ops.utilities.bind_to_function as bind_to_function
 import ops
 
 sample_document = "sample_project_no_media.xml"
@@ -34,25 +34,25 @@ class PyInterpreterTestCase(unittest.TestCase):
 	def test_number_to_string_conversion(self):
 		for item in [0, 7, 40, 500, 0.2, 1e5, -14.7, 138.86512022365332]:
 			self.assertEqual(item, 
-				util.number_from_string( 
-					util.number_to_string( item ))) 
+				data.number_from_string( 
+					data.number_to_string( item ))) 
 
 	def test_boolean_to_string_conversion(self):
 	
-		self.assertEqual(True, util.bool_from_string("true"))
-		self.assertEqual(False, util.bool_from_string("false"))
+		self.assertEqual(True, data.bool_from_string("true"))
+		self.assertEqual(False, data.bool_from_string("false"))
 		
-		self.assertRaises(ValueError, util.bool_from_string, ("True",))	# no capital!
-		self.assertRaises(ValueError, util.bool_from_string, ("False",))	# no capital!
-		self.assertRaises(ValueError, util.bool_from_string, ("",))	
-		self.assertRaises(ValueError, util.bool_from_string, ("0",))
-		self.assertRaises(ValueError, util.bool_from_string, ("1",))
-		self.assertRaises(ValueError, util.bool_from_string, ("gibberish",))	
+		self.assertRaises(ValueError, data.bool_from_string, ("True",))	# no capital!
+		self.assertRaises(ValueError, data.bool_from_string, ("False",))	# no capital!
+		self.assertRaises(ValueError, data.bool_from_string, ("",))	
+		self.assertRaises(ValueError, data.bool_from_string, ("0",))
+		self.assertRaises(ValueError, data.bool_from_string, ("1",))
+		self.assertRaises(ValueError, data.bool_from_string, ("gibberish",))	
 
 		for item in ["true", "false"]:
 			self.assertEqual(item, 
-				util.bool_to_string(
-					util.bool_from_string( item )))
+				data.bool_to_string(
+					data.bool_from_string( item )))
 
 	def do_test_serialization_from_all_xml_files_of(self, filenames, obj, findlist = []):
 		self.do_test_serialization_from_files_of(all_xml_files, obj, findlist)
@@ -223,11 +223,11 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEqual(222, sprite.get_variable("sprite var").value().as_number())
 
 	def test_operation(self):
-		fn = ops.utilities.bind_to_function("reportSum")
+		fn = ops.bind_to_function("reportSum")
 		result = fn(None, (Literal(56), Literal(72)))
 		self.assertEqual(result, Literal(56 + 72))
 		
-		fn = ops.utilities.bind_to_function("nonexistentFunction")
+		fn = ops.bind_to_function("nonexistentFunction")
 		self.assertEquals(None, fn)
 		
 if __name__ == '__main__':

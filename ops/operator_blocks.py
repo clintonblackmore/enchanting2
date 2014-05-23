@@ -1,7 +1,7 @@
 import math
 import random
 
-from core import Literal
+import data
 
 """These are the green 'operations' blocks, many of which do math"""
 
@@ -9,24 +9,24 @@ from core import Literal
 # reifyScript, reifyReporter, reifyPredicate
 
 def reportSum(target, args):
-	return Literal(args[0].as_number() + args[1].as_number())
+	return data.Literal(args[0].as_number() + args[1].as_number())
 	
 def reportDifference(target, args):
-	return Literal(args[0].as_number() - args[1].as_number())
+	return data.Literal(args[0].as_number() - args[1].as_number())
 
 def reportProduct(target, args):
-	return Literal(args[0].as_number() * args[1].as_number())
+	return data.Literal(args[0].as_number() * args[1].as_number())
 
 def reportQuotient(target, args):
 	a, b = (args[0].as_number(), args[1].as_number())
-	return Literal(a / b)
+	return data.Literal(a / b)
 	# system will need to know if a div by zero error occurs
 
 def reportModulus(target, args):
-	return Literal(args[0].as_number() % args[1].as_number())
+	return data.Literal(args[0].as_number() % args[1].as_number())
 
 def reportRound(target, args):
-	return Literal(math.round(args[0].as_number()))
+	return data.Literal(math.round(args[0].as_number()))
 
 #def reportMonadic(target, args):
 #	"This one does all the functions, like sqrt, etc"
@@ -35,16 +35,16 @@ def reportRound(target, args):
 	
 def reportRandom(target, args):	
 	min, max = (args[0].as_number(), args[1].as_number())
-	return Literal(random.randrange(min, max))
+	return data.Literal(random.randrange(min, max))
 	
 # to do:
 # reportLessThan, reportEquals, reportGreaterThan, reportAnd, reportOr, reportNot
 
 def reportTrue(target, args):
-	return Literal(True)
+	return data.Literal(True)
 	
 def reportFalse(target, args):
-	return Literal(False)
+	return data.Literal(False)
 
 # many more to do here
 
