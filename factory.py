@@ -1,9 +1,10 @@
 """factory.py lets you deserialize an unknown type from XML"""
 
+import xml.etree.cElementTree as ElementTree
+
+
 import data
 import script
-
-import xml.etree.cElementTree as ElementTree
 
 
 def deserialize_value(element):

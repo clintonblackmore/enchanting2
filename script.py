@@ -47,12 +47,17 @@ class Block(object):
 	def evaluate(self, target):
 		# evaluate each of the arguments
 		if self.var_name is None:
-			args = [arg.evaluate(target) for arg in self.arguments]
+			args = [arg.evaluate(target) for arg in self.arguments 
+					if not isinstance(arg, (data.Comment, Script))]
 		else:
 			args = self.var_name
 		
 		# now, run this function
-		result = self.function(target, args)		
+		if self.function is not None:
+			result = self.function(target, args)		
+		else:
+			print "Unknown function: %s" % self.function_name
+			result = data.Literal(None)
 	
 		# to do -- save args and result with timestamp
 		
@@ -107,6 +112,8 @@ class Script(object):
 		if not self.code_pos:
 			self.code_pos = self.blocks.__iter__()
 		current_block = self.code_pos.next()
+		print type(current_block)
+		print vars(current_block)
 		current_block.evaluate(target)
 		
 	def run(self, target):
