@@ -76,13 +76,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 	def compare_xml(self, xml, new_xml, save_to_files, test_file_name):
 		"Compare the old and new XML, and write them to files for diffing on request"
-		
-		print "---"
-		print test_file_name
-		print xml
-		print new_xml
-		print
-		
+				
 		xml = normalized_xml(xml)
 		new_xml = normalized_xml(new_xml)
 		if save_to_files:
@@ -374,7 +368,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 	
 		self.do_test_using_factory(xml, "costume.xml")
 
-	def x_test_costumes(self):
+	def test_costumes(self):
 		
 		xml = """
 		<costumes>
@@ -383,6 +377,16 @@ class PyInterpreterTestCase(unittest.TestCase):
 					<costume name="costume1" center-x="125" center-y="63" image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAALCAYAAABLcGxfAAAAlklEQVQoU2NkQAUKQK4+EBtAhS8A6YtA/ACmjBHKACnsB+IANANg3A1ARiFII0gDyLT9QCwAkv1vjaqF8Sic/wHIcgRpADH40RWi2wTV+AGk4T8hxXD3A22jkwZsnsXhB7CTFgBxPD5NSCG1EBYPE4Aa8mGmwgIBSSFIaiIQF8A0gARA8VEApUGxDQKgWAbFNshAEM0AANFJJceqzy0EAAAAAElFTkSuQmCC" id="16"/>
 				</item>
 			</list>
+		</costumes>
+		"""
+	
+		self.do_test_using_factory(xml, "costumes.xml")
+
+	def test_empty_costumes(self):
+		
+		xml = """
+		<costumes>
+			<list id="26" />
 		</costumes>
 		"""
 	

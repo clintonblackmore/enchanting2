@@ -18,7 +18,8 @@ def deserialize_value(element):
 				  "list" : data.List,
 				  "block" : script.Block,
 				  "script" : script.Script,
-				  "costume" : media.Costume
+				  "costume" : media.Costume,
+				  "costumes" : media.Costumes,
 				}
 	
 	#if element.tag == "list":

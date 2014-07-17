@@ -35,32 +35,13 @@ def load_image_from_string(s):
 	
 
 class Costume(object):
-	"""A stage or sprite is depicted by drawing its current costume.
+	"""A costume is a graphical representation of a stage or sprite.
 	
-	Each sprite or stage has zero or more costumes.
+	Each stage or sprite has zero or more costumes.
 	
-		
-	Here is an object with no costumes (but it is drawn as a turtle):
+	The XML for a costume looks like this:
 	
-	<costumes>
-		<list id="22"/>
-	</costumes>
-	
-	Here is XML for a sprite with 3 costumes:
-	
-	<costumes>
-		<list id="15">
-			<item>
-				<costume name="costume1" center-x="78" center-y="32" image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
-			</item>
-			<item>
-				<costume name="costume2" center-x="163" center-y="75" image="data:image/png;base64,iVBORw0KGgoAA..." id="17"/>
-			</item>
-			<item>
-				<costume name="costume3" center-x="188" center-y="76" image="data:image/png;base64,iVBORw0KGgoAAA..." id="18"/>
-			</item>
-		</list>
-	</costumes>	
+	<costume name="costume1" center-x="78" center-y="32" image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
 	"""
 	
 		
@@ -97,4 +78,48 @@ class Costume(object):
 	
 		return node
 		
+class Costumes(object):
+	"""A stage or sprite is depicted by drawing its current costume.
+	
+	Each sprite or stage has zero or more costumes.
+	
+		
+	Here is an object with no costumes (but it is drawn as a turtle):
+	
+	<costumes>
+		<list id="22"/>
+	</costumes>
+	
+	Here is XML for a sprite with 3 costumes:
+	
+	<costumes>
+		<list id="15">
+			<item>
+				<costume name="costume1" center-x="78" center-y="32" image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
+			</item>
+			<item>
+				<costume name="costume2" center-x="163" center-y="75" image="data:image/png;base64,iVBORw0KGgoAA..." id="17"/>
+			</item>
+			<item>
+				<costume name="costume3" center-x="188" center-y="76" image="data:image/png;base64,iVBORw0KGgoAAA..." id="18"/>
+			</item>
+		</list>
+	</costumes>	
+	"""
+	
+#	def __init__(self):
+#		self.list_node = []
+	
+	def deserialize(self, elem):
+		"Loads this class from an element tree representation"
+		assert(elem.tag == "costumes")
+		assert(len(elem) == 1)			# we should have one child -- a list node
+		self.list_node = data.List()
+		self.list_node.deserialize(elem[0])
+		
+	def serialize(self):
+		"Return an elementtree representing this object"
+		costumes_node = Element("costumes")
+		costumes_node.append(self.list_node.serialize())
+		return costumes_node
 

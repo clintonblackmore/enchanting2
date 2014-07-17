@@ -1,6 +1,6 @@
 """actor.py contains things that do things, specifically:
 
-  (BaseActor - not as yet implemented base class for Stage and Sprite)
+  BaseActor - base class for Stage and Sprite
   Sprite - an entity that moves around on the screen and runs scripts
   Stage - the screen background, which also runs scripts
   Project - the overarching project containing the Stage and everything.
