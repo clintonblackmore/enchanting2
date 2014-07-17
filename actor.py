@@ -11,6 +11,7 @@ from xml.etree.cElementTree import Element
 
 import data
 import script
+import media
 
 class BaseActor(object):
 	"Common things between Sprite and Stage"
@@ -29,7 +30,13 @@ class BaseActor(object):
 		assert(elem.tag in ("stage", "sprite"))
 		
 		# children
-		self.costumes = elem.find("costumes")
+		costumes_node = elem.find("costumes")
+		if costumes_node:
+			self.costumes = media.Costumes()
+			self.costumes.deserialize(costumes_node)
+		else:
+			self.costumes = None
+			
 		self.sounds = elem.find("sounds")
 		self.variables.deserialize(elem.find("variables"))
 		self.blocks = elem.find("blocks")
@@ -108,6 +115,11 @@ class Sprite(BaseActor):
 		
 		variables_node = self.variables.serialize()
 		scripts_node = self.serialize_scripts()
+
+		if self.costumes:
+			costumes_node = self.costumes.serialize()
+		else:
+			costumes_node = None
 		
 		sprite = Element("sprite", 
 						name = self.name, 
@@ -123,13 +135,16 @@ class Sprite(BaseActor):
 						pen = self.pen,
 						id = data.number_to_string(self.id))
 		
-		for child in (self.nest, self.costumes, self.sounds, 
+		for child in (self.nest, costumes_node, self.sounds, 
 					  variables_node, self.blocks, scripts_node):
 			if child is not None:
 				sprite.append(child)
 		return sprite		
 
-
+	def draw(self, media_environment):
+		if self.costumes:
+			self.costumes.draw(media_environment, self.costume, self.x, self.y, self.heading, self.scale)
+	
 class Stage(BaseActor):
 	"Represents a Snap! Stage"
 	
@@ -202,6 +217,11 @@ class Stage(BaseActor):
 		variables_node = self.variables.serialize()
 		scripts_node = self.serialize_scripts()
 		
+		if self.costumes:
+			costumes_node = self.costumes.serialize()
+		else:
+			costumes_node = None
+		
 		stage = Element("stage", 
 						name = self.name,
 						width = data.number_to_string(self.width),
@@ -214,12 +234,13 @@ class Stage(BaseActor):
 						scheduled = data.bool_to_string(self.scheduled),
 						id = data.number_to_string(self.id))
 				
-		for child in (self.pentrails, self.costumes, self.sounds, 
+		for child in (self.pentrails, costumes_node, self.sounds, 
 					  variables_node, self.blocks, scripts_node, sprites):
 			stage.append(child)
 		return stage		
 
-
+	def draw(self, media_environment):
+		pass
 
 class Project:
 	"Represents a Snap! Project"

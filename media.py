@@ -10,13 +10,61 @@ from xml.etree.cElementTree import Element
 import base64
 from cStringIO import StringIO
 import pygame
+import sys
 
 import data
 
 
+class PyGameMediaEnvironment(object):
+	def __init__(self):
+		pygame.init()
+		self.width = 0
+		self.height = 0
+		self.screen = None
+	
+	def setup_for_project(self, project):
+		"We have loaded a new project.  Adjust setup if necessary"
+		self.width = project.stage.width
+		self.height = project.stage.height
+		self.screen = pygame.display.set_mode((self.width, self.height))
+
+	def finished_frame(self):
+		"Called after every sequence of drawing commands"
+		pygame.display.flip()
+
+	def check_for_events(self):
+		"Called between frames"
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT: 
+				sys.exit()
+
+	def draw_actor(self, actor):
+		"Called for the stage and each sprite as they are to be drawn"
+
+	def stage_pos_to_screen_pos(self, stage_pos):
+		"Sprites are positioned on the stage; we need to know where to draw them on the screen"
+		stage_x, stage_y = stage_pos
+		
+		# for a typical 480x360 stage,
+		#   stage coordinates are from (-240, 180) - (239, 179)
+		#   screen coordinates are (0, 0) - (479, 359)
+		
+		screen_x = stage_x + self.width / 2
+		screen_y = self.height / 2 - stage_y 
+		
+		return (screen_x, screen_y)
+
+	def stage_pos_to_nearest_screen_pos(self, stage_pos):
+		"Returns integer coordinates after mapping a stage position onto a screen position"
+		screen_x, screen_y = self.stage_pos_to_screen_pos(stage_pos)
+		return (int(round(screen_x)), int(round(screen_y)))
+
 def load_image_from_string(s):
 	"""Takes a string like data:image/png;base64,iVBORw0KGgoAAA...
 	and returns an image object"""
+
+	if len(s) == 0:
+		return None
 	
 	assert(s[:10] == "data:image")
 	
@@ -58,12 +106,15 @@ class Costume(object):
 		assert(elem.tag == "costume")
 
 		self.name = elem.get("name")
-		self.center_x = int(elem.get("center-x"))
-		self.center_y = int(elem.get("center-y"))
+		self.center_x = data.number_from_string(elem.get("center-x"))
+		self.center_y = data.number_from_string(elem.get("center-y"))
 		self.raw_image = elem.get("image")
 		self.id = int(elem.get("id"))
 
 		self.image = load_image_from_string(self.raw_image)
+		#if self.image == None:
+		#	import xml.etree.cElementTree as ElementTree
+		#	print "Bad Image Node: " + ElementTree.dump(elem)
 
 	def serialize(self):
 		"Return an elementtree representing this object"
@@ -107,8 +158,8 @@ class Costumes(object):
 	</costumes>	
 	"""
 	
-#	def __init__(self):
-#		self.list_node = []
+	def __init__(self):
+		self.list_node = None
 	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
@@ -123,3 +174,24 @@ class Costumes(object):
 		costumes_node.append(self.list_node.serialize())
 		return costumes_node
 
+	def draw(self, media_env, index, x_pos, y_pos, heading, scale):
+		"Draws the costume"
+		
+		# Look up the image at this index
+		# (Note that there may not be one -- in which case, we draw a 'turtle')
+		image = None
+
+		if self.list_node and self.list_node.index_in_range(index):
+			image = self.list_node.item_at_index(index).image
+		
+		if not image:
+			# No image -- draw a turtle
+			# For now, draw a circle
+			color = (0, 0, 0)
+			pos = media_env.stage_pos_to_nearest_screen_pos((x_pos, y_pos))
+			radius = 15
+			pygame.draw.circle(media_env.screen, color, pos, radius) 
+		else:
+			rect = image.get_rect()
+			rect.center = media_env.stage_pos_to_nearest_screen_pos((x_pos, y_pos))
+			media_env.screen.blit(image, image.get_rect())

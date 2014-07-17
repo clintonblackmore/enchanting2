@@ -262,7 +262,13 @@ class List(object):
 	def as_bool(self):
 		return True			# seems to be how Snap! responds
 		
+	def index_in_range(self, index):
+		return 0 <= index < len(self.list)
 
+	def item_at_index(self, index):
+		if self.index_in_range(index):
+			return self.list[index]
+		return None
 
 class Variable(object):
 	"""Represents a value that changes over time.  
