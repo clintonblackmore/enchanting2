@@ -5,6 +5,7 @@ import xml.etree.cElementTree as ElementTree
 
 import data
 import script
+import media
 
 
 def deserialize_value(element):
@@ -16,7 +17,8 @@ def deserialize_value(element):
 				  "comment" : data.Comment,
 				  "list" : data.List,
 				  "block" : script.Block,
-				  "script" : script.Script 
+				  "script" : script.Script,
+				  "costume" : media.Costume
 				}
 	
 	#if element.tag == "list":

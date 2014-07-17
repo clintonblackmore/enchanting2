@@ -8,6 +8,8 @@ from xml.etree import cElementTree as ElementTree
 from lxml import etree
 from lxml import objectify
 
+from xml.dom import minidom
+
 try:
 	import unittest2 as unittest
 except ImportError:
@@ -29,9 +31,13 @@ all_xml_files = glob.glob('*.xml')
 
 def normalized_xml(xml):
 	"We convert the xml to an object tree and back and return the result, without whitespace"
-	obj = objectify.fromstring(xml)
-	search_tree_for_anomalies(obj)
-	return etree.tostring(obj, pretty_print = True)
+
+	parser = etree.XMLParser(remove_blank_text=True) # lxml.etree only!
+	root = etree.XML(xml, parser)
+	xml_stage_2 = etree.tostring(root)
+	
+	reparsed = minidom.parseString(xml_stage_2)
+	return reparsed.toprettyxml()
 
 def clean_output_directories():
 	"Make sure that output directories exist and are empty"
@@ -70,6 +76,13 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 	def compare_xml(self, xml, new_xml, save_to_files, test_file_name):
 		"Compare the old and new XML, and write them to files for diffing on request"
+		
+		print "---"
+		print test_file_name
+		print xml
+		print new_xml
+		print
+		
 		xml = normalized_xml(xml)
 		new_xml = normalized_xml(new_xml)
 		if save_to_files:
@@ -344,16 +357,36 @@ class PyInterpreterTestCase(unittest.TestCase):
 		sprite.deserialize(elem)
 		new_xml = ElementTree.tostring(sprite.serialize())
 				
-		# for reasons I don't understand, the normalized XML has
-		# the same data but doesn't output the script's attributes 
-		# in the same order -- so I'm turning off this test.
-		#self.compare_xml(xml, new_xml, True, "script.xml")
+		# Woohoo.  We can compare this successfully now!
+		self.compare_xml(xml, new_xml, True, "script.xml")
 		
 		self.assertEqual(sprite.get_variable("c").value().as_number(), 0)
 		
 		sprite.scripts[0].run(sprite)
 		
 		self.assertEqual(sprite.get_variable("c").value().as_number(), 74)
+
+	def test_costume(self):
+		
+		xml = """
+			<costume name="costume1" center-x="125" center-y="63" image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAALCAYAAABLcGxfAAAAlklEQVQoU2NkQAUKQK4+EBtAhS8A6YtA/ACmjBHKACnsB+IANANg3A1ARiFII0gDyLT9QCwAkv1vjaqF8Sic/wHIcgRpADH40RWi2wTV+AGk4T8hxXD3A22jkwZsnsXhB7CTFgBxPD5NSCG1EBYPE4Aa8mGmwgIBSSFIaiIQF8A0gARA8VEApUGxDQKgWAbFNshAEM0AANFJJceqzy0EAAAAAElFTkSuQmCC" id="16"/>
+		"""
+	
+		self.do_test_using_factory(xml, "costume.xml")
+
+	def x_test_costumes(self):
+		
+		xml = """
+		<costumes>
+			<list id="15">
+				<item>
+					<costume name="costume1" center-x="125" center-y="63" image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAALCAYAAABLcGxfAAAAlklEQVQoU2NkQAUKQK4+EBtAhS8A6YtA/ACmjBHKACnsB+IANANg3A1ARiFII0gDyLT9QCwAkv1vjaqF8Sic/wHIcgRpADH40RWi2wTV+AGk4T8hxXD3A22jkwZsnsXhB7CTFgBxPD5NSCG1EBYPE4Aa8mGmwgIBSSFIaiIQF8A0gARA8VEApUGxDQKgWAbFNshAEM0AANFJJceqzy0EAAAAAElFTkSuQmCC" id="16"/>
+				</item>
+			</list>
+		</costumes>
+		"""
+	
+		self.do_test_using_factory(xml, "costumes.xml")
 
 	
 if __name__ == '__main__':

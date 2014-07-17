@@ -7,6 +7,7 @@ import xml.etree.cElementTree as ElementTree
 import pygame
 
 import actor
+import media
 
 def main(argv):
 	"""This is a naive, blocking, co-operatively multitasking approach"""
