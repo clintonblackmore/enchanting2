@@ -15,6 +15,8 @@ try:
 except ImportError:
 	import unittest
 
+from collections import OrderedDict
+
 sys.path.append('..')
 
 import data
@@ -201,6 +203,26 @@ class PyInterpreterTestCase(unittest.TestCase):
 		new_xml = ElementTree.tostring(l.serialize())
 		self.compare_xml(xml, new_xml, True, "literal_option.xml")
 
+	def test_literal_repr(self):
+		x = Literal()
+		self.assertEqual(x, eval(repr(x)))
+		
+		x = Literal(12)
+		self.assertEqual(x, eval(repr(x)))
+		
+		x = Literal("text")
+		self.assertEqual(x, eval(repr(x)))
+
+		x = Literal(True)
+		self.assertEqual(x, eval(repr(x)))
+
+		x = Literal(False)
+		self.assertEqual(x, eval(repr(x)))
+
+		x = Literal(None)
+		self.assertEqual(x, eval(repr(x)))
+
+
 	def test_list_with_items(self):
 		xml = """
 			<list id="73">
@@ -280,18 +302,22 @@ class PyInterpreterTestCase(unittest.TestCase):
 		proj = Project()
 		stage = Stage(proj)
 		sprite = Sprite(proj)
-		proj.variables.add(Variable(Literal(777), "proj var"))
-		stage.variables.add(Variable(Literal(555), "stage var"))
-		sprite.variables.add(Variable(Literal(222), "sprite var"))
+		proj.variables.add(Variable("proj var", Literal(777)))
+		stage.variables.add(Variable("stage var", Literal(555)))
+		sprite.variables.add(Variable("sprite var", Literal(222)))
 		
-		self.assertEqual(proj.variables.variables.keys(), ['proj var'])
+		self.assertEqual(
+			[key for key in proj.variables.variables.keys() if not key.startswith("@")], 
+			['proj var'])
 		self.assertEqual(None, proj.get_variable("no such variable"))
 		self.assertNotEqual(None, proj.get_variable("proj var"))
 		self.assertEqual(None, proj.get_variable("stage var"))
 		self.assertEqual(None, proj.get_variable("sprite var"))
 		self.assertEqual(777, proj.get_variable("proj var").value().as_number())
 
-		self.assertEqual(stage.variables.variables.keys(), ['stage var'])
+		self.assertEqual(
+			[key for key in stage.variables.variables.keys() if not key.startswith("@")], 
+			['stage var'])
 		self.assertEqual(None, stage.get_variable("no such variable"))
 		self.assertNotEqual(None, stage.get_variable("proj var"))
 		self.assertNotEqual(None, stage.get_variable("stage var"))
@@ -299,13 +325,25 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.assertEqual(777, stage.get_variable("proj var").value().as_number())
 		self.assertEqual(555, stage.get_variable("stage var").value().as_number())
 		
-		self.assertEqual(sprite.variables.variables.keys(), ['sprite var'])
+		self.assertEqual(
+			[key for key in sprite.variables.variables.keys() if not key.startswith("@")], 
+			['sprite var'])
 		self.assertEqual(None, sprite.get_variable("no such variable"))
 		self.assertNotEqual(None, sprite.get_variable("proj var"))
 		self.assertEqual(None, sprite.get_variable("stage var"))
 		self.assertNotEqual(None, sprite.get_variable("sprite var"))
 		self.assertEqual(777, sprite.get_variable("proj var").value().as_number())
 		self.assertEqual(222, sprite.get_variable("sprite var").value().as_number())
+
+	def test_variable_repr(self):
+		x = Variable("name", Literal("val"))
+		self.assertEqual(x, eval(repr(x)))
+		
+	def test_variables_repr(self):
+		v = Variables(OrderedDict([
+			('x', Variable('x', Literal(47.0))), 
+			('y', Variable('y', Literal(52.0)))]))
+		self.assertEqual(v, eval(repr(v)))
 
 	def test_operation(self):
 		fn = ops.bind_to_function("reportSum")
@@ -348,9 +386,10 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 		elem = ElementTree.XML(xml)
 		sprite = Sprite(None)
+
 		sprite.deserialize(elem)
 		new_xml = ElementTree.tostring(sprite.serialize())
-				
+		
 		# Woohoo.  We can compare this successfully now!
 		self.compare_xml(xml, new_xml, True, "script.xml")
 		

@@ -62,6 +62,34 @@ class BaseActor(object):
 			return self.project.get_variable(name)
 		return None
 
+	def value_of_variable(self, name):
+		v = self.get_variable(name)
+		if v:
+			result = v.value()
+			if result:
+				return result
+		return data.Literal(None)
+
+	def set_variable(self, name, value):
+		v = self.get_variable(name)
+		if v:
+			v.set(value)
+		return None
+		
+	def increment_variable(self, name, incr):
+		v = self.get_variable(name)
+		if v:
+			v.set(data.Literal(v.value().as_number() + incr.as_number()))	
+		return None
+
+	def show_variable(self, name, visible):
+		v = target.get_variable(name)
+		if v:
+			v.show(True)
+		return None
+
+
+
 
 class Sprite(BaseActor):
 	"Represents a Snap! Sprite"
@@ -72,10 +100,12 @@ class Sprite(BaseActor):
 		# "@" attributes
 		self.name = "No name"
 		self.idx = -1
-		self.x = 0
-		self.y = 0
-		self.heading = 90
-		self.scale = 1
+		
+		self.variables.add(data.Variable("@x", data.Literal(0)))
+		self.variables.add(data.Variable("@y", data.Literal(0)))
+		self.variables.add(data.Variable("@heading", data.Literal(90)))
+		self.variables.add(data.Variable("@scale", data.Literal(1)))
+		
 		self.rotation = 1
 		self.draggable = False
 		self.costume = 0
@@ -96,10 +126,12 @@ class Sprite(BaseActor):
 		# attributes
 		self.name = elem.get("name")
 		self.idx  = int(elem.get("idx"))
-		self.x = float(elem.get("x"))
-		self.y = float(elem.get("y"))
-		self.heading = float(elem.get("heading"))
-		self.scale = float(elem.get("scale"))
+
+		self.set_variable("@x", data.Literal(float(elem.get("x"))))
+		self.set_variable("@y", data.Literal(float(elem.get("y"))))
+		self.set_variable("@heading", data.Literal(float(elem.get("heading"))))
+		self.set_variable("@scale", data.Literal(float(elem.get("scale"))))
+
 		self.rotation = float(elem.get("rotation"))
 		self.draggable = data.bool_from_string(elem.get("draggable"))
 		self.costume = int(elem.get("costume"))
@@ -121,13 +153,17 @@ class Sprite(BaseActor):
 		else:
 			costumes_node = None
 		
+		x = self.value_of_variable("@x").as_string()
+		
 		sprite = Element("sprite", 
 						name = self.name, 
 					  	idx = data.number_to_string(self.idx),
-						x = data.number_to_string(self.x),
-						y = data.number_to_string(self.y),
-						heading = data.number_to_string(self.heading),
-						scale = data.number_to_string(self.scale),
+					  	x = data.number_to_string(
+					  			self.value_of_variable("@x").as_number()),
+					  	y = self.value_of_variable("@y").as_string(),
+					  	heading = data.number_to_string(
+					  			self.value_of_variable("@heading").as_number()),
+					  	scale = self.value_of_variable("@scale").as_string(),
 						rotation = data.number_to_string(self.rotation),
 						draggable = data.bool_to_string(self.draggable),
 						costume = data.number_to_string(self.costume),

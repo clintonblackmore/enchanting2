@@ -100,6 +100,12 @@ class Literal(object):
 	def __eq__(self, other):
 		return self.value == other.value
 		
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.value)
+
+	def __str__(self):
+		return str(self.value)
+		
 	def evaluate(self, target):
 		"Literals are already evaluated, but the caller doesn't know that"
 		return self
@@ -274,7 +280,7 @@ class Variable(object):
 	"""Represents a value that changes over time.  
 	Contains something like a Literal, Bool, or List"""
 	
-	def __init__(self, contents = None, name = "No name"):
+	def __init__(self, name = "No name", contents = None):
 		self.contents = contents
 		self.name = name
 		
@@ -295,6 +301,15 @@ class Variable(object):
 		if self.contents is not None:
 			variable.append(self.contents.serialize())
 		return variable
+
+	def __eq__(self, other):
+		return self.name == other.name and self.contents == other.contents
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.contents)
+
+	def __str__(self):
+		return "%r: %s" % (self.name, self.contents)
 		
 	def set(self, value):
 		"Sets a variable.  Pass in a Literal or other object as a value"
@@ -315,10 +330,13 @@ class Variable(object):
 class Variables(object):
 	"""This is a collection of 'Variable' objects, as used by the project, stage, and sprites"""
 	
-	def __init__(self):
+	def __init__(self, input = None):
 		# ordered dict so we can serialize in the order we deserialized
 		# (possibly doesn't really matter, but it helps with the unit tests)
-		self.variables = OrderedDict()	
+		if input == None:
+			self.variables = OrderedDict()	
+		else:
+			self.variables = input
 				
 	def add(self, v):
 		self.variables[v.name] = v
@@ -327,8 +345,13 @@ class Variables(object):
 		"Loads this class from an element tree representation"
 		assert(elem.tag == "variables")
 		
+		# Clear out all non-internal variables
+		#self.variables.clear()
+		for var_name in self.variables.keys():
+			if not var_name.startswith("@"):
+				del self.variables[var_name]
+		
 		# Read in all the variables
-		self.variables.clear()
 		for child_node in elem:
 			v = Variable()
 			v.deserialize(child_node)
@@ -337,9 +360,21 @@ class Variables(object):
 	def serialize(self):
 		"Return an elementtree representing this object"
 		variables = Element("variables")
-		for child in self.variables.values():
-			variables.append(child.serialize())
+		for variable in self.variables.values():
+			# Do not serialize internal variables
+			if not variable.name.startswith("@"):
+				variables.append(variable.serialize())
 		return variables
+
+	def __eq__(self, other):
+		return self.variables == other.variables
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.variables)
+
+	def __str__(self):
+		var_list = self.variables.values()
+		return "{%s}" % ", ".join(str(var) for var in var_list)
 
 	def get_variable(self, name):
 		if name in self.variables:

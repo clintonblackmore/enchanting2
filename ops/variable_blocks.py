@@ -5,41 +5,23 @@ import data
 def var(target, name):
 	"""We expect a variable 'name', not the regular 'args' parameter,
 	as the XML for this block is different."""
-	v = target.get_variable(name)
-	if v:
-		result = v.value()
-		if result:
-			return result
-	return data.Literal(None)
+	return target.value_of_variable(name)
 
 def doSetVar(target, args):
 	name, value = (args[0].as_string(), args[1])
-	v = target.get_variable(name)
-	if v:
-		v.set(value)
-	return None
+	return target.set_variable(name, value)
 	
 def doChangeVar(target, args):
 	name, incr = (args[0].as_string(), args[1])
-	v = target.get_variable(name)
-	if v:
-		v.set(data.Literal(v.value().as_number() + incr.as_number()))	
-	return None
+	return target.increment_variable(name, incr)
 
 def doShowVar(target, args):
 	name = args[0].as_string()
-	v = target.get_variable(name)
-	if v:
-		v.show(True)
-	return None
+	return target.show_variable(name, True)
 
 def doHideVar(target, args):
 	name = args[0].as_string()
-	v = target.get_variable(name)
-	if v:
-		v.show(False)
-	return None
-
+	return target.show_variable(name, False)
 
 # many more to do here
 
