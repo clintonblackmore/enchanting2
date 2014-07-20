@@ -106,7 +106,7 @@ class Literal(object):
 	def __str__(self):
 		return str(self.value)
 		
-	def evaluate(self, target):
+	def evaluate(self, target, script):
 		"Literals are already evaluated, but the caller doesn't know that"
 		return self
 		
@@ -160,7 +160,7 @@ class Color(object):
 	def __eq__(self, other):
 		return self.color_string == other.color_string
 		
-	def evaluate(self, target):
+	def evaluate(self, target, script):
 		"Colors are already evaluated, but the caller doesn't know that"
 		return self
 		

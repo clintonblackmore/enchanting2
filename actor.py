@@ -179,7 +179,12 @@ class Sprite(BaseActor):
 
 	def draw(self, media_environment):
 		if self.costumes:
-			self.costumes.draw(media_environment, self.costume, self.x, self.y, self.heading, self.scale)
+			self.costumes.draw(media_environment, 
+			                   self.costume, 
+			                   self.value_of_variable("@x").as_number(),
+			                   self.value_of_variable("@y").as_number(),
+			                   self.value_of_variable("@heading").as_number(),
+			                   self.value_of_variable("@scale").as_number())
 	
 class Stage(BaseActor):
 	"Represents a Snap! Stage"

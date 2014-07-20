@@ -2,7 +2,7 @@
 
 """These are the purple 'looks' blocks"""
 
-def bubble(target, args):
+def bubble(target_actor, parent_script, args):
 	# stub implementation
 	print "I SAY :> " + args[0].as_string()
 	return None		# command-blocks always return None

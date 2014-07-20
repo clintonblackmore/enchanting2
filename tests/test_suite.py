@@ -347,11 +347,11 @@ class PyInterpreterTestCase(unittest.TestCase):
 
 	def test_operation(self):
 		fn = ops.bind_to_function("reportSum")
-		result = fn(None, (Literal(56), Literal(72)))
+		result = fn(None, None, (Literal(56), Literal(72)))
 		self.assertEqual(result, Literal(56 + 72))
 		
 		fn = ops.bind_to_function("nonexistentFunction")
-		self.assertEquals(None, fn)
+		self.assertEquals(None, None, fn)
 		
 	def test_script(self):
 		"""Runs a small script to see if it works.

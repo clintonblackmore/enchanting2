@@ -44,17 +44,19 @@ class Block(object):
 			block.append(arg.serialize())
 		return block
 		
-	def evaluate(self, target):
+	def evaluate(self, target, script):
 		# evaluate each of the arguments
 		if self.var_name is None:
-			args = [arg.evaluate(target) for arg in self.arguments 
-					if not isinstance(arg, (data.Comment, Script))]
+			args = []
+			args = [arg.evaluate(target, script) for arg in self.arguments 
+					if not isinstance(arg, (data.Comment))]
+					#if not isinstance(arg, (data.Comment, Script))]
 		else:
 			args = self.var_name
 		
 		# now, run this function
 		if self.function is not None:
-			result = self.function(target, args)		
+			result = self.function(target, script, args)		
 		else:
 			print "Unknown function: %s" % self.function_name
 			result = data.Literal(None)
@@ -63,7 +65,12 @@ class Block(object):
 		
 		return result
 
+	def __repr__(self):
+		# Shows state; can't reconstruct from this info
+		return "%s(%r)" % (self.__class__, self.__dict__)
 
+	def __str__(self):
+		return "%s(%s)" % (self.function_name, ", ".join([str(s) for s in self.arguments])) 
 
 class Script(object):
 	"Represents a sequence of instructions"
@@ -77,6 +84,8 @@ class Script(object):
 		self.blocks = []
 		
 		self.code_pos = None
+		self.subscript = None	# set by flow control blocks
+		self.repeat = 0			# adjusted by flow control blocks
 	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
@@ -85,6 +94,11 @@ class Script(object):
 		# attributes
 		self.x = elem.get("x")
 		self.y = elem.get("y")
+
+		# presumably, we want to start this script from the beginning
+		# if we've just (re?)loaded it
+		self.code_pos = None
+		self.subscript = None
 
 		# our children are a sequence of blocks or custom blocks
 		self.blocks = []
@@ -109,13 +123,39 @@ class Script(object):
 
 	def step(self, target):
 		"Execute a line of code; raises StopIteration when there is no more code"
-		if not self.code_pos:
-			self.code_pos = self.blocks.__iter__()
-		current_block = self.code_pos.next()
-		print type(current_block)
-		print vars(current_block)
-		current_block.evaluate(target)
-		
+
+		# Are we inside a nested script?
+		if self.subscript:
+			# step the script until it is done
+			try:
+				print "(sub) ",
+				self.subscript.step(target)
+			except StopIteration:
+				print "(exit)"
+				self.subscript = None
+		else:
+			# Have we just started into this code block?
+			if not self.code_pos:
+				print "(1st)",
+				self.code_pos = self.blocks.__iter__()
+			# Get the next block
+			print "(rpt %s)" % self.repeat,
+			if self.repeat:
+				current_block = self.code_pos.__iter__()
+			else:
+				current_block = self.code_pos.next()
+			
+			print current_block,
+			
+			current_block.evaluate(target, self)
+
+			print "(rpt %s)" % self.repeat
+
+
+	def evaluate(self, target, script):
+		"Scripts (in arguments) evaluate to themselves.  [They can be run separately]"
+		return self
+
 	def run(self, target):
 		"Runs the code until it is done (if it ever finishes)"
 		try:
@@ -124,6 +164,7 @@ class Script(object):
 		except StopIteration:
 			pass
 				
-		
+	def __str__(self):
+		return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
 
 		

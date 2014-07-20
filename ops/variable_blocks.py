@@ -2,26 +2,26 @@ import data
 
 """These are the orange 'variable' blocks"""
 
-def var(target, name):
+def var(target_actor, parent_script, name):
 	"""We expect a variable 'name', not the regular 'args' parameter,
 	as the XML for this block is different."""
-	return target.value_of_variable(name)
+	return target_actor.value_of_variable(name)
 
-def doSetVar(target, args):
+def doSetVar(target_actor, parent_script, args):
 	name, value = (args[0].as_string(), args[1])
-	return target.set_variable(name, value)
+	return target_actor.set_variable(name, value)
 	
-def doChangeVar(target, args):
+def doChangeVar(target_actor, parent_script, args):
 	name, incr = (args[0].as_string(), args[1])
-	return target.increment_variable(name, incr)
+	return target_actor.increment_variable(name, incr)
 
-def doShowVar(target, args):
+def doShowVar(target_actor, parent_script, args):
 	name = args[0].as_string()
-	return target.show_variable(name, True)
+	return target_actor.show_variable(name, True)
 
-def doHideVar(target, args):
+def doHideVar(target_actor, parent_script, args):
 	name = args[0].as_string()
-	return target.show_variable(name, False)
+	return target_actor.show_variable(name, False)
 
 # many more to do here
 
