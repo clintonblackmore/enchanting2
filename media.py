@@ -30,16 +30,13 @@ class PyGameMediaEnvironment(object):
 
 	def finished_frame(self):
 		"Called after every sequence of drawing commands"
-		pygame.display.flip()
+		pygame.display.update()
 
 	def check_for_events(self):
 		"Called between frames"
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT: 
 				sys.exit()
-
-	def draw_actor(self, actor):
-		"Called for the stage and each sprite as they are to be drawn"
 
 	def stage_pos_to_screen_pos(self, stage_pos):
 		"Sprites are positioned on the stage; we need to know where to draw them on the screen"
@@ -174,24 +171,40 @@ class Costumes(object):
 		costumes_node.append(self.list_node.serialize())
 		return costumes_node
 
+	def draw_stage(self, media_env, index):
+		"Draws a background for the stage"
+		index -= 1 	# convert 1-based index to 0-based index
+		image = None
+
+		if self.list_node and self.list_node.index_in_range(index):
+			image = self.list_node.item_at_index(index).image
+
+		if not image:
+			# No image -- draw the background in white
+			media_env.screen.fill((255, 255, 255))
+		else:
+			media_env.screen.blit(image, (0, 0))
+
 	def draw(self, media_env, index, x_pos, y_pos, heading, scale):
 		"Draws the costume"
 		
 		# Look up the image at this index
+		index -= 1	# convert 1-based index to standard 0-based index
 		# (Note that there may not be one -- in which case, we draw a 'turtle')
 		image = None
 
 		if self.list_node and self.list_node.index_in_range(index):
 			image = self.list_node.item_at_index(index).image
 		
+		pos = media_env.stage_pos_to_nearest_screen_pos((x_pos, y_pos))
+
 		if not image:
 			# No image -- draw a turtle
 			# For now, draw a circle
-			color = (0, 0, 0)
-			pos = media_env.stage_pos_to_nearest_screen_pos((x_pos, y_pos))
+			color = (255, 120, 0)
 			radius = 15
 			pygame.draw.circle(media_env.screen, color, pos, radius) 
 		else:
 			rect = image.get_rect()
-			rect.center = media_env.stage_pos_to_nearest_screen_pos((x_pos, y_pos))
-			media_env.screen.blit(image, image.get_rect())
+			rect.center = pos
+			media_env.screen.blit(image, rect)

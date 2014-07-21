@@ -26,17 +26,7 @@ def main(argv):
 	media_environment = media.PyGameMediaEnvironment()
 	media_environment.setup_for_project(project)
 	
-	
-#	pygame.init()
-#	width = project.stage.width
-#	height = project.stage.height
-#	screen = pygame.display.set_mode((width, height))
-	
-#	white = (255, 255, 255)
-#	black = (0, 0, 0)
-	
 	while True:
-
 		media_environment.check_for_events()
 		
 		for sprite in all_actors:
@@ -46,9 +36,7 @@ def main(argv):
 				except StopIteration:
 					pass
 
-#		screen.fill(white)
-
-		# note: we assume stage is first sprite in list
+		# note: the stage is the first sprite in the list, and erases the screen
 		for sprite in all_actors:
 			sprite.draw(media_environment)
 		pygame.display.flip()

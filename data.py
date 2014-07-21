@@ -258,6 +258,17 @@ class List(object):
 				list_node.append(item_node)
 				
 		return list_node
+	
+	def __eq__(self, other):
+		# This should be adequate
+		return self.list == other.list
+
+#	def __repr__(self):
+#		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.contents)
+
+	def __str__(self):
+		return "%r" % (self.list, )
+
 			
 	def as_number(self):
 		return 0

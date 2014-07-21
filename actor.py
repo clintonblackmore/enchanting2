@@ -53,6 +53,9 @@ class BaseActor(object):
 			scripts_node.append(item.serialize())
 		return scripts_node
 
+	def __str__(self):
+		return "%s %s" % (self.__class__.__name__, self.variables)
+
 	def get_variable(self, name):
 		"Gets a variable by name; returns None if it does not exist"
 		v = self.variables.get_variable(name)
@@ -177,6 +180,10 @@ class Sprite(BaseActor):
 				sprite.append(child)
 		return sprite		
 
+	def __str__(self):
+		return "%s %r %s" % (self.__class__.__name__, self.name, self.variables)
+
+
 	def draw(self, media_environment):
 		if self.costumes:
 			self.costumes.draw(media_environment, 
@@ -281,7 +288,8 @@ class Stage(BaseActor):
 		return stage		
 
 	def draw(self, media_environment):
-		pass
+		if self.costumes:
+			self.costumes.draw_stage(media_environment, self.costume)
 
 class Project:
 	"Represents a Snap! Project"
