@@ -470,7 +470,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 	
 	def test_nested_repeat_block(self):
 		"""Increment a counter in a loop that is within a loop
-		
+	
 		set count to 0
 		repeat 10
 			repeat 5
@@ -481,6 +481,29 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.do_test_script("nested_repeat_loops.xml", 
 			{"count": Literal(0)}, 
 			{"count": Literal(50)})
+
+	def test_bad_repeat_blocks(self):
+		"""Try out various pathological loops.
+		
+		set count to 0			count is 0
+		repeat count            repeats 0x
+			change count by 1
+		repeat 0                repeats 0x
+			change count by 1
+		repeat -1               repeats 0x
+			change count by 1
+		repeat 0.5              repeats 0x
+			change count by 1
+		change count by 1       count goes from 0 -> 1
+		repeat count            repeats 1x
+			change count by 1
+
+		The final result should be 2."""
+
+		self.do_test_script("bad_repeat_loops.xml", 
+			{"count": Literal(0)}, 
+			{"count": Literal(2)})
+
 
 	
 if __name__ == '__main__':

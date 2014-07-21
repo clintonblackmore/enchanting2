@@ -19,7 +19,7 @@ def doRepeat(target_actor, parent_script, args):
 	else:
 		parent_script.repeat -= 1
 	
-	if parent_script.repeat > 0:
+	if parent_script.repeat >= 1:
 		parent_script.subscript = script.from_start()
 	else:
 		parent_script.repeat = 0
