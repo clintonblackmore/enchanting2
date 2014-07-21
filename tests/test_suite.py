@@ -431,7 +431,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 	
 		self.do_test_using_factory(xml, "costumes.xml")
 
-	def do_test_script(self, filename, pre_check, post_check):
+	def do_test_script(self, filename, pre_check = {}, post_check = {}, injection = {}):
 		"Lets you easily test the first script of the first sprite"
 		
 		tree = ElementTree.parse(filename)
@@ -444,6 +444,10 @@ class PyInterpreterTestCase(unittest.TestCase):
 		# Run the pre-check
 		for variable_name, start_value in pre_check.items():
 			self.assertEqual(sprite.get_variable(variable_name).value(), start_value)
+
+		# Inject any values
+		for variable_name, injected_value in injection.items():
+			sprite.set_variable(variable_name, injected_value)
 
 		# Run the script
 		script.run(sprite)
@@ -504,7 +508,19 @@ class PyInterpreterTestCase(unittest.TestCase):
 			{"count": Literal(0)}, 
 			{"count": Literal(2)})
 
+	def test_if_block(self):
+		"Tests some if blocks"
+		
+		filename = "if_test.xml"
+		
+		self.do_test_script(filename,
+			{}, {"result": Literal("smile")}, {"feeling": Literal("happy")})
 
+		self.do_test_script(filename,
+			{}, {"result": Literal("frown")}, {"feeling": Literal("sad")})
+
+		self.do_test_script(filename,
+			{}, {"result": Literal("meh")}, {"feeling": Literal("whatever")})
 	
 if __name__ == '__main__':
 	clean_output_directories()

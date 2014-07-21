@@ -38,7 +38,13 @@ def reportRandom(target_actor, parent_script, args):
 	return data.Literal(random.randrange(min, max))
 	
 # to do:
-# reportLessThan, reportEquals, reportGreaterThan, reportAnd, reportOr, reportNot
+# reportLessThan, reportGreaterThan, reportAnd, reportOr, reportNot
+
+
+def reportEquals(target_actor, parent_script, args):
+	lhs, rhs = args
+	return data.Literal(lhs == rhs)
+
 
 def reportTrue(target_actor, parent_script, args):
 	return data.Literal(True)

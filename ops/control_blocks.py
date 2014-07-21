@@ -25,7 +25,23 @@ def doRepeat(target_actor, parent_script, args):
 		parent_script.repeat = 0
 	return data.Literal(parent_script.repeat)
 	
-def forever(target, args):
+def doForever(target_actor, parent_script, args):
+	script = args[0]
+	parent_script.repeat = True
+	parent_script.subscript = script.from_start()
 	return None
+
+def doIf(target_actor, parent_script, args):
+	condition, true_block = args
+	if condition.evaluate(target_actor, parent_script).as_bool():
+		parent_script.subscript = true_block.from_start()
+	
+def doIfElse(target_actor, parent_script, args):
+	condition, true_block, false_block = args
+	if condition.evaluate(target_actor, parent_script).as_bool():
+		parent_script.subscript = true_block.from_start()
+	else:
+		parent_script.subscript = false_block.from_start()
+
 
 # to do -- lots!
