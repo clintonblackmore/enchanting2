@@ -431,6 +431,57 @@ class PyInterpreterTestCase(unittest.TestCase):
 	
 		self.do_test_using_factory(xml, "costumes.xml")
 
+	def do_test_script(self, filename, pre_check, post_check):
+		"Lets you easily test the first script of the first sprite"
+		
+		tree = ElementTree.parse(filename)
+		project = Project()
+		project.deserialize(tree.getroot())
+	
+		sprite = project.stage.sprites[0]
+		script = sprite.scripts[0]
+	
+		# Run the pre-check
+		for variable_name, start_value in pre_check.items():
+			self.assertEqual(sprite.get_variable(variable_name).value(), start_value)
+
+		# Run the script
+		script.run(sprite)
+		
+		# Run the post-check
+		for variable_name, final_value in post_check.items():
+			self.assertEqual(sprite.get_variable(variable_name).value(), final_value)
+		
+
+	def test_repeat_block(self):
+
+		"""Increment a counter five times in a loop.
+		
+		set count to 0
+		repeat 5
+			change count by 1
+				
+		The final result should be 5."""
+
+		self.do_test_script("simple_repeat_loop.xml", 
+			{"count": Literal(0)}, 
+			{"count": Literal(5)})
+
+	
+	def test_nested_repeat_block(self):
+		"""Increment a counter in a loop that is within a loop
+		
+		set count to 0
+		repeat 10
+			repeat 5
+				change count by 1
+				
+		The final result should be 50."""
+
+		self.do_test_script("nested_repeat_loops.xml", 
+			{"count": Literal(0)}, 
+			{"count": Literal(50)})
+
 	
 if __name__ == '__main__':
 	clean_output_directories()

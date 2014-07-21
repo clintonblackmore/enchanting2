@@ -80,12 +80,15 @@ class Script(object):
 		# Only top-level scripts contain x and y values
 		self.x = None
 		self.y = None
-
 		self.blocks = []
+		self.from_start()
 		
-		self.code_pos = None
+	def from_start(self):
+		"Sets or re-sets the script to begin and the start"
+		self.code_pos = 0
 		self.subscript = None	# set by flow control blocks
 		self.repeat = 0			# adjusted by flow control blocks
+		return self
 	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
@@ -95,10 +98,7 @@ class Script(object):
 		self.x = elem.get("x")
 		self.y = elem.get("y")
 
-		# presumably, we want to start this script from the beginning
-		# if we've just (re?)loaded it
-		self.code_pos = None
-		self.subscript = None
+		self.from_start()
 
 		# our children are a sequence of blocks or custom blocks
 		self.blocks = []
@@ -128,29 +128,22 @@ class Script(object):
 		if self.subscript:
 			# step the script until it is done
 			try:
-				print "(sub) ",
+#				print "(sub) ",
 				self.subscript.step(target)
 			except StopIteration:
-				print "(exit)"
+#				print "(exit)"
 				self.subscript = None
 		else:
-			# Have we just started into this code block?
-			if not self.code_pos:
-				print "(1st)",
-				self.code_pos = self.blocks.__iter__()
-			# Get the next block
-			print "(rpt %s)" % self.repeat,
-			if self.repeat:
-				current_block = self.code_pos.__iter__()
+			if self.code_pos < len(self.blocks):
+				current_block = self.blocks[self.code_pos]
 			else:
-				current_block = self.code_pos.next()
-			
-			print current_block,
-			
+				raise StopIteration
+		
+#			print current_block,
 			current_block.evaluate(target, self)
-
-			print "(rpt %s)" % self.repeat
-
+#			print "(repeat %s)" % self.repeat
+			if not self.repeat:
+				self.code_pos += 1
 
 	def evaluate(self, target, script):
 		"Scripts (in arguments) evaluate to themselves.  [They can be run separately]"
