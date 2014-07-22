@@ -21,12 +21,18 @@ class PyGameMediaEnvironment(object):
 		self.width = 0
 		self.height = 0
 		self.screen = None
+		
+		# Fonts
+		self.speech_font = None
+		
 	
 	def setup_for_project(self, project):
 		"We have loaded a new project.  Adjust setup if necessary"
 		self.width = project.stage.width
 		self.height = project.stage.height
 		self.screen = pygame.display.set_mode((self.width, self.height))
+		pygame.display.set_caption(project.name)
+		self.speech_font = pygame.font.Font(None, 36)
 
 	def finished_frame(self):
 		"Called after every sequence of drawing commands"
@@ -55,6 +61,15 @@ class PyGameMediaEnvironment(object):
 		"Returns integer coordinates after mapping a stage position onto a screen position"
 		screen_x, screen_y = self.stage_pos_to_screen_pos(stage_pos)
 		return (int(round(screen_x)), int(round(screen_y)))
+
+	def create_speech_message(self, message, is_thought_bubble):
+		"Creates a speech message and returns it in some format"
+		return self.speech_font.render(message, 1, (0, 0, 0))
+		
+	def draw_speech_message(self, speech_message, position):
+		"Shows a speech message created by 'create_speech_message'"
+		self.screen.blit(speech_message, self.stage_pos_to_nearest_screen_pos(position))
+		
 
 def load_image_from_string(s):
 	"""Takes a string like data:image/png;base64,iVBORw0KGgoAAA...
@@ -212,3 +227,4 @@ class Costumes(object):
 			rect = image.get_rect()
 			rect.center = pos
 			media_env.screen.blit(image, rect)
+			

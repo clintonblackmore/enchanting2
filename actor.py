@@ -121,6 +121,12 @@ class Sprite(BaseActor):
 		# children specific to sprite
 		self.nest = None	# optional child
 	
+		# Not serialized
+		self.speech_message = ""
+		self.speech_is_thought = False	# False == though, True == speech
+		self.speech_image = None
+		self.create_new_speech_message = False
+	
 	def deserialize(self, elem):
 		"Loads this class from an element tree representation"
 		
@@ -185,15 +191,28 @@ class Sprite(BaseActor):
 	def __str__(self):
 		return "%s %r %s" % (self.__class__.__name__, self.name, self.variables)
 
+	def say_or_think(self, message, is_thought):
+		if message != self.speech_message or is_thought != self.speech_is_thought:
+			self.speech_message = message
+			self.speech_is_thought = is_thought
+			if len(self.speech_message) > 0:
+				self.create_new_speech_message = True
 
 	def draw(self, media_environment):
+		x = self.value_of_variable("@x").as_number()
+		y = self.value_of_variable("@y").as_number()
 		if self.costumes:
 			self.costumes.draw(media_environment, 
-			                   self.costume, 
-			                   self.value_of_variable("@x").as_number(),
-			                   self.value_of_variable("@y").as_number(),
+			                   self.costume, x, y,
 			                   self.value_of_variable("@heading").as_number(),
 			                   self.value_of_variable("@scale").as_number())
+		if len(self.speech_message) > 0:
+			if self.create_new_speech_message:
+				self.speech_image = \
+					media_environment.create_speech_message(
+						self.speech_message, self.speech_is_thought)
+				self.create_new_speech_message = False
+			media_environment.draw_speech_message(self.speech_image, (x + 30, y + 30))
 	
 class Stage(BaseActor):
 	"Represents a Snap! Stage"
