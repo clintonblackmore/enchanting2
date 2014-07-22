@@ -22,9 +22,13 @@ def main(argv):
 	all_actors.extend([sprite for sprite in project.stage.sprites
 					   if isinstance(sprite, actor.BaseActor)])
 
-	"Create our media environment"	
+	# Create our media environment
+	# (now that we have dimensions for the screen)
 	media_environment = media.PyGameMediaEnvironment()
 	media_environment.setup_for_project(project)
+
+	for sprite in all_actors:
+		sprite.convert_art(media_environment)
 	
 	while True:
 		media_environment.check_for_events()

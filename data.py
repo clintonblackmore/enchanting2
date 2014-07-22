@@ -98,7 +98,31 @@ class Literal(object):
 		return literal
 		
 	def __eq__(self, other):
-		return self.value == other.value
+		# Do both sides evaluate to numbers?
+		try:
+			return float(self.value) == float(other.value)
+		except:
+			pass
+		# Return result of case-insensitive string comparison
+		return self.as_string().upper() == other.as_string().upper()
+
+	def __gt__(self, other):
+		# Do both sides evaluate to numbers?
+		try:
+			return float(self.value) > float(other.value)
+		except:
+			pass
+		# Return result of case-insensitive string comparison
+		return self.as_string().upper() > other.as_string().upper()
+
+	def __lt__(self, other):
+		# Do both sides evaluate to numbers?
+		try:
+			return float(self.value) < float(other.value)
+		except:
+			pass
+		# Return result of case-insensitive string comparison
+		return self.as_string().upper() < other.as_string().upper()
 		
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.value)

@@ -222,6 +222,42 @@ class PyInterpreterTestCase(unittest.TestCase):
 		x = Literal(None)
 		self.assertEqual(x, eval(repr(x)))
 
+	def test_literal_comparisons(self):
+		self.assertEqual(Literal(10), Literal(10))
+		self.assertEqual(Literal(10), Literal("10"))
+		self.assertEqual(Literal("10"), Literal("10"))
+		self.assertEqual(Literal("10"), Literal(10))
+
+		self.assertNotEqual(Literal(10), Literal(20))
+		self.assertNotEqual(Literal(10), Literal("20"))
+		self.assertNotEqual(Literal("10"), Literal("20"))
+		self.assertNotEqual(Literal("10"), Literal(20))
+		
+		self.assertNotEqual(Literal(10), Literal("ten"))
+
+		self.assertEqual(Literal("apple"), Literal("ApPlE"))
+		
+		self.assertTrue(Literal(10) < Literal(20))
+		self.assertTrue(Literal(10) < Literal("20"))
+		self.assertTrue(Literal("10") < Literal("20"))
+		self.assertTrue(Literal("10") < Literal(20))
+		self.assertTrue(Literal("Apple") < Literal("Banana"))
+		self.assertTrue(Literal("A") < Literal("B"))
+		self.assertTrue(Literal("a") < Literal("B"))
+		self.assertTrue(Literal("A") < Literal("b"))
+		self.assertTrue(Literal("a") < Literal("b"))
+
+		self.assertFalse(Literal(10) > Literal(20))
+		self.assertFalse(Literal(10) > Literal("20"))
+		self.assertFalse(Literal("10") > Literal("20"))
+		self.assertFalse(Literal("10") > Literal(20))
+		self.assertFalse(Literal("Apple") > Literal("Banana"))
+		self.assertFalse(Literal("A") > Literal("B"))
+		self.assertFalse(Literal("a") > Literal("B"))
+		self.assertFalse(Literal("A") > Literal("b"))
+		self.assertFalse(Literal("a") > Literal("b"))
+
+		self.assertTrue(Literal(10) < Literal("ten"))	# string comparison
 
 	def test_list_with_items(self):
 		xml = """
@@ -509,7 +545,17 @@ class PyInterpreterTestCase(unittest.TestCase):
 			{"count": Literal(2)})
 
 	def test_if_block(self):
-		"Tests some if blocks"
+		"""Tests some if blocks
+
+		Tests doIf, doIfElse, and reportEquals
+		
+		set result to "meh"
+		if feeling == "happy"
+			set result to "smile"
+		else
+			if feeling == "sad"
+				set result to "frown"
+		"""
 		
 		filename = "if_test.xml"
 		

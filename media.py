@@ -76,8 +76,7 @@ def load_image_from_string(s):
 	data = StringIO(base64.b64decode(s[data_start:]))
 
 	# Read the object
-	return pygame.image.load(data, namehint)
-	
+	return pygame.image.load(data, namehint)	
 
 class Costume(object):
 	"""A costume is a graphical representation of a stage or sprite.
@@ -170,6 +169,11 @@ class Costumes(object):
 		costumes_node = Element("costumes")
 		costumes_node.append(self.list_node.serialize())
 		return costumes_node
+
+	def convert_art(self, media_env):
+		if self.list_node:
+			for costume in self.list_node.list:
+				costume.image = costume.image.convert_alpha()
 
 	def draw_stage(self, media_env, index):
 		"Draws a background for the stage"

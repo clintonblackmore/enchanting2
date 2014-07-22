@@ -91,7 +91,9 @@ class BaseActor(object):
 			v.show(True)
 		return None
 
-
+	def convert_art(self, media_env):
+		if self.costumes:
+			self.costumes.convert_art(media_env)
 
 
 class Sprite(BaseActor):
