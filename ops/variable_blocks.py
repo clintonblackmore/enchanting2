@@ -13,7 +13,7 @@ def doSetVar(target_actor, parent_script, args):
 	
 def doChangeVar(target_actor, parent_script, args):
 	name, incr = (args[0].as_string(), args[1])
-	return target_actor.increment_variable(name, incr)
+	return target_actor.increment_variable(name, incr.as_number())
 
 def doShowVar(target_actor, parent_script, args):
 	name = args[0].as_string()

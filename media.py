@@ -64,7 +64,7 @@ class PyGameMediaEnvironment(object):
 
 	def create_speech_message(self, message, is_thought_bubble):
 		"Creates a speech message and returns it in some format"
-		return self.speech_font.render(message, 1, (0, 0, 0))
+		return self.speech_font.render(message, 1, (0, 0, 0)).convert_alpha()
 		
 	def draw_speech_message(self, speech_message, position):
 		"Shows a speech message created by 'create_speech_message'"

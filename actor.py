@@ -8,6 +8,7 @@
 
 
 from xml.etree.cElementTree import Element
+import math
 
 import data
 import script
@@ -79,10 +80,10 @@ class BaseActor(object):
 			v.set(value)
 		return None
 		
-	def increment_variable(self, name, incr):
+	def increment_variable(self, name, increment):
 		v = self.get_variable(name)
 		if v:
-			v.set(data.Literal(v.value().as_number() + incr.as_number()))	
+			v.set(data.Literal(v.value().as_number() + increment))	
 		return None
 
 	def show_variable(self, name, visible):
@@ -214,6 +215,18 @@ class Sprite(BaseActor):
 				self.create_new_speech_message = False
 			media_environment.draw_speech_message(self.speech_image, (x + 30, y + 30))
 	
+	def radians_from_heading(self):
+		"Returns an angle representing the heading, in the range (0, 360)"
+		angle = (self.value_of_variable("@heading").as_number() - 90.0) % 360.0
+		return math.radians(angle)
+		
+	def move_forward(self, distance):
+		radians = self.radians_from_heading()
+		dX = math.cos(radians) * distance
+		dY = -math.sin(radians) * distance
+		self.increment_variable("@x", dX)
+		self.increment_variable("@y", dY)
+		
 class Stage(BaseActor):
 	"Represents a Snap! Stage"
 	

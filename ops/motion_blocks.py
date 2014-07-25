@@ -15,7 +15,7 @@ def setXPosition(target_actor, parent_script, args):
 	
 def changeXPosition(target_actor, parent_script, args):
 	incr = args[0]
-	return target_actor.increment_variable("@x", incr)
+	return target_actor.increment_variable("@x", incr.as_number())
 	
 def xPosition(target_actor, parent_script, args):
 	return target_actor.value_of_variable("@x")
@@ -27,10 +27,14 @@ def setYPosition(target_actor, parent_script, args):
 	
 def changeYPosition(target_actor, parent_script, args):
 	incr = args[0]
-	return target_actor.increment_variable("@y", incr)
+	return target_actor.increment_variable("@y", incr.as_number())
 	
 def yPosition(target_actor, parent_script, args):
 	return target_actor.value_of_variable("@y")
 	
+def forward(target_actor, parent_script, args):
+	distance = args[0].as_number()
+	target_actor.move_forward(distance)
+	return None
 
 # to do -- lots!
