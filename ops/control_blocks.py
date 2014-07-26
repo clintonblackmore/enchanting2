@@ -5,8 +5,19 @@ import data
 
 """These are the yellow 'control' blocks"""
 
+# The 'receive' blocks don't actually do their work here
 def receiveGo(target_actor, parent_script, args):
 	return None
+	
+def receiveKey(target_actor, parent_script, args):
+	return None
+	
+def receiveMessage(target_actor, parent_script, args):
+	return None
+
+def receiveClick(target_actor, parent_script, args):
+	return None
+
 
 def doRepeat(target_actor, parent_script, args):
 	# We are in a loop

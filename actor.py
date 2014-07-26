@@ -43,9 +43,10 @@ class BaseActor(object):
 		self.blocks = elem.find("blocks")
 		self.scripts = []
 		for item in elem.find("scripts"):
-			s = script.Script()
-			s.deserialize(item)
-			self.scripts.append(s)
+			scrpt = script.Script()
+			scrpt.deserialize(item)
+			self.scripts.append(script)
+			self.project.event_loop.queue(scrpt, self)
 
 	def serialize_scripts(self):
 		"Returns a script node for use in serialization"
@@ -328,7 +329,9 @@ class Stage(BaseActor):
 class Project:
 	"Represents a Snap! Project"
 	
-	def __init__(self):
+	def __init__(self, event_loop):
+	
+		self.event_loop = event_loop
 	
 		# "@" attributes
 		self.name = "No name"
@@ -380,3 +383,14 @@ class Project:
 	def get_variable(self, name):
 		"Gets a named variable; returns None if it does not exist"
 		return self.variables.get_variable(name)
+
+	def sprites_in_drawing_order(self):
+		"Returns sprites in the order they should be drawn, back to front"
+		
+		# Sprites should have some sort of z-order parameter, but 
+		# I don't know what it is yet.
+		# Most important is that the stage goes first.
+		all_actors = [self.stage]
+		all_actors.extend([sprite for sprite in self.stage.sprites
+					   if isinstance(sprite, BaseActor)])
+		return all_actors

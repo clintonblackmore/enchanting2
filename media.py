@@ -13,6 +13,7 @@ import pygame
 import sys
 
 import data
+import actor
 
 
 class PyGameMediaEnvironment(object):
@@ -34,15 +35,30 @@ class PyGameMediaEnvironment(object):
 		pygame.display.set_caption(project.name)
 		self.speech_font = pygame.font.Font(None, 36)
 
+		# convert media
+		all_actors = [project.stage]
+		all_actors.extend([sprite for sprite in project.stage.sprites
+					   if isinstance(sprite, actor.BaseActor)])
+		for sprite in all_actors:
+			sprite.convert_art(self)
+
+	def draw(self, project):
+		for sprite in project.sprites_in_drawing_order():
+			sprite.draw(self)
+		self.finished_frame()
+
 	def finished_frame(self):
 		"Called after every sequence of drawing commands"
 		pygame.display.update()
 
-	def check_for_events(self):
+	def check_for_events(self, event_loop):
 		"Called between frames"
 		for event in pygame.event.get():
-			if event.type == pygame.QUIT: 
+			if event.type == pygame.QUIT:
+				event_loop.trigger_quit_event() 
 				sys.exit()
+			if event.type == pygame.KEYDOWN:
+				event_loop.trigger_key_press(event.unicode)
 
 	def stage_pos_to_screen_pos(self, stage_pos):
 		"Sprites are positioned on the stage; we need to know where to draw them on the screen"

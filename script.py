@@ -5,6 +5,7 @@
 """
 
 from xml.etree.cElementTree import Element
+import gevent
 
 import data
 import factory
@@ -43,6 +44,11 @@ class Block(object):
 		for arg in self.arguments:
 			block.append(arg.serialize())
 		return block
+	
+	def is_hat_block(self):
+		"Is this a hat-shaped, script-triggering block?"
+		# appropriate function names include receiveGo, receiveKey, receiveBroadcast
+		return self.function_name.startswith("receive")	
 		
 	def evaluate(self, target, script):
 		# evaluate each of the arguments
@@ -76,7 +82,6 @@ class Script(object):
 	"Represents a sequence of instructions"
 	
 	def __init__(self):
-	
 		# Only top-level scripts contain x and y values
 		self.x = None
 		self.y = None
@@ -121,6 +126,12 @@ class Script(object):
 						
 		return script	
 
+	def top_block(self):
+		"Returns the first block in the script (which may be used to trigger the script)"
+		if self.blocks and len(self.blocks) > 0:
+			return self.blocks[0]
+		return None
+
 	def step(self, target):
 		"Execute a line of code; raises StopIteration when there is no more code"
 
@@ -154,8 +165,16 @@ class Script(object):
 		try:
 			while True:
 				self.step(target)
+				gevent.sleep(0.01)
 		except StopIteration:
 			pass
+	
+	def starts_on_trigger(self):
+		"After the script runs, should it be queued up to be triggered again?"
+		tb = self.top_block()
+		if tb:
+			return tb.is_hat_block()
+		return False
 				
 	def __str__(self):
 		return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
