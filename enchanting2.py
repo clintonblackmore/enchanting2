@@ -4,7 +4,6 @@ This is the main entry point of the system"""
 
 import sys
 import xml.etree.cElementTree as ElementTree
-import pygame
 
 import actor
 import media
@@ -43,7 +42,6 @@ def main(argv):
 		# note: the stage is the first sprite in the list, and erases the screen
 		for sprite in all_actors:
 			sprite.draw(media_environment)
-		pygame.display.flip()
 		media_environment.finished_frame()
 	
 if __name__ == "__main__":
