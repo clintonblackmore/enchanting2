@@ -42,11 +42,17 @@ class BaseActor(object):
 		self.variables.deserialize(elem.find("variables"))
 		self.blocks = elem.find("blocks")
 		self.scripts = []
+		
+		event_loop = None
+		if self.project:
+			event_loop = self.project.event_loop
+		
 		for item in elem.find("scripts"):
-			scrpt = script.Script()
-			scrpt.deserialize(item)
-			self.scripts.append(script)
-			self.project.event_loop.queue(scrpt, self)
+			new_script = script.Script()
+			new_script.deserialize(item)
+			self.scripts.append(new_script)
+			if event_loop:
+				event_loop.queue(new_script, self)
 
 	def serialize_scripts(self):
 		"Returns a script node for use in serialization"

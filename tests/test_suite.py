@@ -24,6 +24,7 @@ from data import Literal, List, Variable, Variables
 from script import Block, Script
 from actor import Stage, Sprite, Project
 import factory
+import event_loop
 
 import ops
 
@@ -139,7 +140,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 		self.compare_xml(xml, new_xml, True, filename)
 
 	def test_serialization_of_project(self):
-		self.do_test_serialization_from_all_xml_files_of(Project(), [])
+		self.do_test_serialization_from_all_xml_files_of(Project(None), [])
 
 	def test_serialization_of_sprite(self):
 		self.do_test_serialization_from_all_xml_files_of(Sprite(None), ["stage", "sprites", "sprite"])
@@ -335,7 +336,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 	
 	def test_variable_lookup(self):
 		"Do the project, stage, and sprite look up the right variables?"
-		proj = Project()
+		proj = Project(None)
 		stage = Stage(proj)
 		sprite = Sprite(proj)
 		proj.variables.add(Variable("proj var", Literal(777)))
@@ -470,12 +471,14 @@ class PyInterpreterTestCase(unittest.TestCase):
 	def do_test_script(self, filename, pre_check = {}, post_check = {}, injection = {}):
 		"Lets you easily test the first script of the first sprite"
 		
+		unused_loop = None	#event_loop.EventLoop()
+		
 		tree = ElementTree.parse(filename)
-		project = Project()
+		project = Project(unused_loop)
 		project.deserialize(tree.getroot())
 	
 		sprite = project.stage.sprites[0]
-		script = sprite.scripts[0]
+		test_script = sprite.scripts[0]
 	
 		# Run the pre-check
 		for variable_name, start_value in pre_check.items():
@@ -486,7 +489,7 @@ class PyInterpreterTestCase(unittest.TestCase):
 			sprite.set_variable(variable_name, injected_value)
 
 		# Run the script
-		script.run(sprite)
+		test_script.run(sprite)
 		
 		# Run the post-check
 		for variable_name, final_value in post_check.items():
