@@ -3,6 +3,22 @@
 import gevent
 import gevent.pool
 
+import data
+
+def is_trigger_key(top_block, media_and_event):
+	"True if the key code matches the key in the wait for keypress hat block"
+	key_name = top_block.arguments[0].as_string()
+	media_env, event = media_and_event
+	return media_env.does_key_event_match(key_name, event)
+
+def does_match_broadcast(top_block, message_string):
+	message_to_start_script = top_block.arguments[0].as_string()
+	print "Starting if message is %s" % message_to_start_script
+	if message_to_start_script == "any message":
+		return True
+	else:
+		return message_string == message_to_start_script
+
 class EventLoop(object):
 
 	def __init__(self):
@@ -21,6 +37,7 @@ class EventLoop(object):
 		# It checks for events (from pygame)
 		# and it updates the screen every so often
 		
+		# (Deferred mostly to confirm that scripts wait to be triggered)
 		gevent.spawn_later(1, self.trigger_green_flag)
 		
 		while True:
@@ -33,33 +50,52 @@ class EventLoop(object):
 		print "QUIT EVENT"
 		pass
 		
-	def trigger_key_press(self, unicode):
+	def trigger_key_press(self, media_and_event):
 		"A key was pressed"
-		print "Key press: %s", unicode
+		print "Key press: %s" % media_and_event[1]
+		self.trigger_scripts("receiveKey", is_trigger_key, media_and_event)		
 
 	def trigger_green_flag(self):
 		"The green flag was pressed / the project is starting"
 		print "Green flag pressed"
 		self.trigger_scripts("receiveGo")
 	
-	def trigger_scripts(self, function_name_match, callback = None):
+	def broadcast_message(self, message_string):
+		"A message was broadcast"
+		print "Broadcasting: %s" % message_string
+		self.trigger_scripts("receiveMessage", does_match_broadcast, message_string)		
+	
+	def trigger_scripts(self, function_name_match, callback = None, data = None):
 		"Trigger all sleeping scripts that match specified conditions"
 		
 		# We can't remove items from the list in-place, 
 		# so we create a new list of sleeping scripts
+		print
 		new_sleeping_scripts = []
+		print "sleeping scripts: %s, active scripts: %s" % \
+			(len(self.sleeping_scripts), len(self.active_scripts))
+		num_activated = 0
+		num_kept = 0
 		for script, sprite in self.sleeping_scripts:
 			top_block = script.top_block()
-			if top_block and top_block.function_name == function_name_match:
-				if callback == None or callback(script) == True:
-					gevent.spawn(self.run_script, script, sprite)
-				else:
-					# return to sleeping list
-					new_sleeping_scripts.append((script, sprite))
-		self.sleeping_scripts = new_sleeping_scripts				
+			if top_block and top_block.function_name == function_name_match \
+			and (callback == None or callback(top_block, data) == True):
+				greenlet = gevent.spawn(self.run_script, script, sprite)
+				self.active_scripts.add(greenlet)
+				num_activated += 1
+			else:
+				# return to sleeping list
+				new_sleeping_scripts.append((script, sprite))
+				num_kept += 1
+		self.sleeping_scripts = new_sleeping_scripts		
+		print "sleeping scripts: %s, active scripts: %s; just activated %s, kept %s" % \
+			(len(self.sleeping_scripts), len(self.active_scripts), num_activated, num_kept)
+		
 
 	def run_script(self, script, sprite):
 		"Runs a script, and queues it up to run again if needs be"
+		print "running script"
 		script.run(sprite)
 		if script.starts_on_trigger():
-			self.queue(script, sprite)
+			self.queue(script.from_start(), sprite)
+			print "queuing script again"

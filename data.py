@@ -141,6 +141,13 @@ class Literal(object):
 		except:
 			return 0
 
+	def as_number_if_number(self):
+		"Returns a number only if it can reasonably be construed as a number; None otherwise"
+		try:
+			return float(self.value)
+		except:
+			return 0
+
 	def as_string(self):
 		if self.value is None:
 			return ""
@@ -191,6 +198,9 @@ class Color(object):
 	# expose as different types
 	def as_number(self):
 		return 0
+
+	def as_number_if_number(self):
+		return None
 
 	def as_string(self):
 		return self.color_string
@@ -293,9 +303,14 @@ class List(object):
 	def __str__(self):
 		return "%r" % (self.list, )
 
+	def __len__(self):
+		return len(self.list)
 			
 	def as_number(self):
 		return 0
+			
+	def as_number_if_number(self):
+		return None
 			
 	def as_string(self):
 		return "[a list]"	# to do

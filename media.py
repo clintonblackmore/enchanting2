@@ -19,6 +19,7 @@ import actor
 class PyGameMediaEnvironment(object):
 	def __init__(self):
 		pygame.init()
+		pygame.key.set_repeat(100, 100)	# keys repeat every 100 ms
 		self.width = 0
 		self.height = 0
 		self.screen = None
@@ -58,7 +59,7 @@ class PyGameMediaEnvironment(object):
 				event_loop.trigger_quit_event() 
 				sys.exit()
 			if event.type == pygame.KEYDOWN:
-				event_loop.trigger_key_press(event.unicode)
+				event_loop.trigger_key_press((self, event))
 
 	def stage_pos_to_screen_pos(self, stage_pos):
 		"Sprites are positioned on the stage; we need to know where to draw them on the screen"
@@ -86,6 +87,14 @@ class PyGameMediaEnvironment(object):
 		"Shows a speech message created by 'create_speech_message'"
 		self.screen.blit(speech_message, self.stage_pos_to_nearest_screen_pos(position))
 		
+	def does_key_event_match(self, key_name, key_event):
+		"Does this key event match the item checking for a key?"
+		print "Does %s match %s?" % (key_name, key_event)
+		if len(key_name) == 1:
+			return key_name.upper() == key_event.unicode.upper()
+		if key_name == "space" and key_event.key == pygame.K_SPACE:
+			return True
+		return False 
 
 def load_image_from_string(s):
 	"""Takes a string like data:image/png;base64,iVBORw0KGgoAAA...
@@ -219,6 +228,29 @@ class Costumes(object):
 			media_env.screen.fill((255, 255, 255))
 		else:
 			media_env.screen.blit(image, (0, 0))
+
+	def index_for_costume(self, literal):
+		"Takes a number/string and returns a valid costume number"
+		if not self.list_node:
+			return 0
+		list_length = len(self.list_node)
+		num = literal.as_number_if_number()
+		if num is not None:
+			return max(1, min(list_length, num))
+		# We are looking it up by name
+		name = literal.as_string()
+		for index, costume in enumerate(self.list_node.list):
+			if costume.name == name:
+				return index + 1	# convert from 0-based to 1-based indices
+				
+	def index_for_next_costume(self, current_index):
+		"What is the index number for the next costume?"
+		if not self.list_node:
+			return current_index
+		list_length = len(self.list_node)
+		if current_index == list_length:
+			return 1
+		return current_index + 1
 
 	def draw(self, media_env, index, x_pos, y_pos, heading, scale):
 		"Draws the costume"

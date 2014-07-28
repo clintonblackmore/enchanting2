@@ -97,6 +97,13 @@ class BaseActor(object):
 		if self.costumes:
 			self.costumes.convert_art(media_env)
 
+	def set_costume(self, literal):
+		if self.costumes:
+			self.costume = self.costumes.index_for_costume(literal)
+
+	def next_costume(self):
+		if self.costumes:
+			self.costume = self.costumes.index_for_next_costume(self.costume)
 
 class Sprite(BaseActor):
 	"Represents a Snap! Sprite"

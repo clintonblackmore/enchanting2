@@ -1,5 +1,6 @@
 import math
 import random
+import gevent
 
 import data
 
@@ -18,6 +19,9 @@ def receiveMessage(target_actor, parent_script, args):
 def receiveClick(target_actor, parent_script, args):
 	return None
 
+def doWait(target_actor, parent_script, args):
+	gevent.sleep(args[0].as_number())
+	return None
 
 def doRepeat(target_actor, parent_script, args):
 	# We are in a loop
@@ -53,6 +57,13 @@ def doIfElse(target_actor, parent_script, args):
 		parent_script.subscript = true_block.from_start()
 	else:
 		parent_script.subscript = false_block.from_start()
+
+def doBroadcast(target_actor, parent_script, args):
+	message = args[0].as_string()
+	target_actor.project.event_loop.broadcast_message(message)
+
+
+	
 
 
 # to do -- lots!
