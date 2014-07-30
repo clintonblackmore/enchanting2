@@ -4,10 +4,12 @@ This is the main entry point of the system"""
 
 import sys
 import xml.etree.cElementTree as ElementTree
+import gevent
 
 import actor
 import media
 import event_loop
+import server
 
 def main(argv):
 	"""Load the project and start it running"""
@@ -24,6 +26,7 @@ def main(argv):
 	media_environment = media.PyGameMediaEnvironment()
 	media_environment.setup_for_project(project)
 
+	gevent.spawn(server.run_web_servers, 8000)
 	loop.run(project, media_environment)
 	
 if __name__ == "__main__":
