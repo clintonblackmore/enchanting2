@@ -1,430 +1,437 @@
 <?xml version="1.0"?>
 <project name="copter" app="Snap! 4.0, http://snap.berkeley.edu" version="1">
-<notes/>
-<thumbnail/>
-<stage name="Stage" width="480" height="360" costume="0" tempo="60" threadsafe="false" lines="round" codify="false" scheduled="true" id="1">
-    <pentrails/>
-    <costumes>
-        <list id="2"/>
-    </costumes>
-    <sounds>
-        <list id="3"/>
-    </sounds>
-    <variables/>
-    <blocks/>
-    <scripts/>
-    <sprites>
-        <sprite name="wall" idx="6" x="0" y="0" heading="90" scale="1" rotation="1" draggable="false" costume="3" color="80,80,80" pen="tip" id="8">
-            <costumes>
-                <list id="9">
-                    <item>
-                        <costume name="green" center-x="240" center-y="180" image="" id="10"/>
-                    </item>
-                    <item>
-                        <costume name="blue" center-x="240" center-y="180" image="" id="11"/>
-                    </item>
-                    <item>
-                        <costume name="pink" center-x="240" center-y="180" image="" id="12"/>
-                    </item>
-                </list>
-            </costumes>
-            <sounds>
-                <list id="13"/>
-            </sounds>
-            <variables/>
-            <blocks/>
-            <scripts>
-                <script x="20" y="20">
-                    <block s="receiveGo"/>
-                    <block s="gotoXY">
-                        <l>0</l>
-                        <l>0</l>
-                    </block>
-                    <block s="doSwitchToCostume">
-                        <l>green</l>
-                    </block>
-                    <block s="goBack">
-                        <l>5</l>
-                    </block>
-                    <block s="doForever">
-                        <script>
-                            <block s="doWait">
-                                <block s="reportRandom">
-                                    <l>15</l>
-                                    <l>30</l>
+    <notes/>
+    <thumbnail/>
+    <stage name="Stage" width="480" height="360" costume="0" tempo="60" threadsafe="false" lines="round" codify="false"
+           scheduled="true" id="1">
+        <pentrails/>
+        <costumes>
+            <list id="2"/>
+        </costumes>
+        <sounds>
+            <list id="3"/>
+        </sounds>
+        <variables/>
+        <blocks/>
+        <scripts/>
+        <sprites>
+            <sprite name="wall" idx="6" x="0" y="0" heading="90" scale="1" rotation="1" draggable="false" costume="3"
+                    color="80,80,80" pen="tip" id="8">
+                <costumes>
+                    <list id="9">
+                        <item>
+                            <costume name="green" center-x="240" center-y="180" image="" id="10"/>
+                        </item>
+                        <item>
+                            <costume name="blue" center-x="240" center-y="180" image="" id="11"/>
+                        </item>
+                        <item>
+                            <costume name="pink" center-x="240" center-y="180" image="" id="12"/>
+                        </item>
+                    </list>
+                </costumes>
+                <sounds>
+                    <list id="13"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveGo"/>
+                        <block s="gotoXY">
+                            <l>0</l>
+                            <l>0</l>
+                        </block>
+                        <block s="doSwitchToCostume">
+                            <l>green</l>
+                        </block>
+                        <block s="goBack">
+                            <l>5</l>
+                        </block>
+                        <block s="doForever">
+                            <script>
+                                <block s="doWait">
+                                    <block s="reportRandom">
+                                        <l>15</l>
+                                        <l>30</l>
+                                    </block>
                                 </block>
-                            </block>
-                            <block s="doWearNextCostume"/>
-                            <block s="clear"/>
-                        </script>
-                    </block>
-                </script>
-                <script x="20" y="225">
-                    <block s="receiveKey">
-                        <l>
-                            <option>space</option>
-                        </l>
-                    </block>
-                    <block s="doWearNextCostume"/>
-                    <block s="clear"/>
-                </script>
-            </scripts>
-        </sprite>
-        <sprite name="copter" idx="5" x="162.86114768512812" y="47.68544964516303" heading="150" scale="0.15" rotation="1" draggable="true" costume="1" color="200,200,200" pen="tip" id="39">
-            <costumes>
-                <list id="40">
-                    <item>
-                        <costume name="costume1" center-x="128" center-y="123.75" image="" id="41"/>
-                    </item>
-                </list>
-            </costumes>
-            <sounds>
-                <list id="42"/>
-            </sounds>
-            <variables>
-                <variable name="speed">
-                    <l>5</l>
-                </variable>
-            </variables>
-            <blocks/>
-            <scripts>
-                <script x="20" y="20">
-                    <block s="receiveGo"/>
-                    <block s="doSetVar">
-                        <l>speed</l>
+                                <block s="doWearNextCostume"/>
+                                <block s="clear"/>
+                            </script>
+                        </block>
+                    </script>
+                    <script x="20" y="225">
+                        <block s="receiveKey">
+                            <l>
+                                <option>space</option>
+                            </l>
+                        </block>
+                        <block s="doWearNextCostume"/>
+                        <block s="clear"/>
+                    </script>
+                </scripts>
+            </sprite>
+            <sprite name="copter" idx="5" x="162.86114768512812" y="47.68544964516303" heading="150" scale="0.15"
+                    rotation="1" draggable="true" costume="1" color="200,200,200" pen="tip" id="39">
+                <costumes>
+                    <list id="40">
+                        <item>
+                            <costume name="costume1" center-x="128" center-y="123.75" image="" id="41"/>
+                        </item>
+                    </list>
+                </costumes>
+                <sounds>
+                    <list id="42"/>
+                </sounds>
+                <variables>
+                    <variable name="speed">
                         <l>5</l>
-                    </block>
-                    <block s="up"/>
-                    <block s="clear"/>
-                    <block s="setColor">
-                        <color>200,200,200,1</color>
-                    </block>
-                    <block s="setSize">
-                        <l>40</l>
-                    </block>
-                    <block s="gotoXY">
-                        <l>0</l>
-                        <l>130</l>
-                    </block>
-                    <block s="setHeading">
-                        <l>90</l>
-                    </block>
-                    <block s="setScale">
-                        <l>15</l>
-                    </block>
-                    <block s="down"/>
-                    <block s="doForever">
-                        <script>
-                            <block s="forward">
+                    </variable>
+                </variables>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveGo"/>
+                        <block s="doSetVar">
+                            <l>speed</l>
+                            <l>5</l>
+                        </block>
+                        <block s="up"/>
+                        <block s="clear"/>
+                        <block s="setColor">
+                            <color>200,200,200,1</color>
+                        </block>
+                        <block s="setSize">
+                            <l>40</l>
+                        </block>
+                        <block s="gotoXY">
+                            <l>0</l>
+                            <l>130</l>
+                        </block>
+                        <block s="setHeading">
+                            <l>90</l>
+                        </block>
+                        <block s="setScale">
+                            <l>15</l>
+                        </block>
+                        <block s="down"/>
+                        <block s="doForever">
+                            <script>
+                                <block s="forward">
+                                    <block var="speed"/>
+                                </block>
+                            </script>
+                        </block>
+                    </script>
+                    <script x="20" y="303">
+                        <block s="receiveMessage">
+                            <l>front left</l>
+                        </block>
+                        <block s="forward">
+                            <block s="reportQuotient">
                                 <block var="speed"/>
+                                <l>-2</l>
                             </block>
-                        </script>
-                    </block>
-                </script>
-                <script x="20" y="303">
-                    <block s="receiveMessage">
-                        <l>front left</l>
-                    </block>
-                    <block s="forward">
-                        <block s="reportQuotient">
-                            <block var="speed"/>
-                            <l>-2</l>
                         </block>
-                    </block>
-                    <block s="turn">
-                        <l>20</l>
-                    </block>
-                </script>
-                <script x="20" y="404">
-                    <block s="receiveMessage">
-                        <l>front right</l>
-                    </block>
-                    <block s="forward">
-                        <block s="reportQuotient">
-                            <block var="speed"/>
-                            <l>-2</l>
+                        <block s="turn">
+                            <l>20</l>
                         </block>
-                    </block>
-                    <block s="turnLeft">
-                        <l>20</l>
-                    </block>
-                </script>
-                <script x="20" y="505">
-                    <block s="receiveMessage">
-                        <l>rear left</l>
-                    </block>
-                    <block s="turn">
-                        <l>90</l>
-                    </block>
-                    <block s="forward">
-                        <l>4</l>
-                    </block>
-                    <block s="turnLeft">
-                        <l>90</l>
-                    </block>
-                </script>
-                <script x="20" y="624">
-                    <block s="receiveMessage">
-                        <l>rear right</l>
-                    </block>
-                    <block s="turnLeft">
-                        <l>90</l>
-                    </block>
-                    <block s="forward">
-                        <l>4</l>
-                    </block>
-                    <block s="turn">
-                        <l>90</l>
-                    </block>
-                </script>
-                <script x="20" y="743">
-                    <block s="receiveKey">
-                        <l>
-                            <option>down arrow</option>
-                        </l>
-                    </block>
-                    <block s="down"/>
-                </script>
-                <script x="20" y="813">
-                    <block s="receiveKey">
-                        <l>
-                            <option>left arrow</option>
-                        </l>
-                    </block>
-                    <block s="clear"/>
-                </script>
-                <script x="20" y="883">
-                    <block s="receiveKey">
-                        <l>
-                            <option>up arrow</option>
-                        </l>
-                    </block>
-                    <block s="up"/>
-                </script>
-            </scripts>
-        </sprite>
-        <watcher scope="copter" var="speed" style="normal" x="10" y="10" color="243,118,29" hidden="true"/>
-        <sprite name="rotor4" idx="1" x="138.86512022365332" y="53.588412439575734" heading="-230" scale="0.15" rotation="1" draggable="false" costume="1" color="80,80,80" pen="tip" id="113">
-            <nest anchor="copter" synch="false"/>
-            <costumes>
-                <list id="114">
-                    <item>
-                        <costume name="rotor" center-x="113" center-y="109.25" image="" id="115"/>
-                    </item>
-                    <item>
-                        <costume name="blue" center-x="113" center-y="108.75" image="" id="116"/>
-                    </item>
-                </list>
-            </costumes>
-            <sounds>
-                <list id="117"/>
-            </sounds>
-            <variables/>
-            <blocks/>
-            <scripts>
-                <script x="20" y="20">
-                    <block s="receiveGo">
-                        <comment w="90" collapsed="false">rear right rotor</comment>
-                    </block>
-                    <block s="comeToFront"/>
-                    <block s="setHeading">
-                        <l>90</l>
-                    </block>
-                    <block s="doForever">
-                        <script>
-                            <block s="doIfElse">
-                                <block s="reportTouchingObject">
-                                    <l>wall</l>
+                    </script>
+                    <script x="20" y="404">
+                        <block s="receiveMessage">
+                            <l>front right</l>
+                        </block>
+                        <block s="forward">
+                            <block s="reportQuotient">
+                                <block var="speed"/>
+                                <l>-2</l>
+                            </block>
+                        </block>
+                        <block s="turnLeft">
+                            <l>20</l>
+                        </block>
+                    </script>
+                    <script x="20" y="505">
+                        <block s="receiveMessage">
+                            <l>rear left</l>
+                        </block>
+                        <block s="turn">
+                            <l>90</l>
+                        </block>
+                        <block s="forward">
+                            <l>4</l>
+                        </block>
+                        <block s="turnLeft">
+                            <l>90</l>
+                        </block>
+                    </script>
+                    <script x="20" y="624">
+                        <block s="receiveMessage">
+                            <l>rear right</l>
+                        </block>
+                        <block s="turnLeft">
+                            <l>90</l>
+                        </block>
+                        <block s="forward">
+                            <l>4</l>
+                        </block>
+                        <block s="turn">
+                            <l>90</l>
+                        </block>
+                    </script>
+                    <script x="20" y="743">
+                        <block s="receiveKey">
+                            <l>
+                                <option>down arrow</option>
+                            </l>
+                        </block>
+                        <block s="down"/>
+                    </script>
+                    <script x="20" y="813">
+                        <block s="receiveKey">
+                            <l>
+                                <option>left arrow</option>
+                            </l>
+                        </block>
+                        <block s="clear"/>
+                    </script>
+                    <script x="20" y="883">
+                        <block s="receiveKey">
+                            <l>
+                                <option>up arrow</option>
+                            </l>
+                        </block>
+                        <block s="up"/>
+                    </script>
+                </scripts>
+            </sprite>
+            <watcher scope="copter" var="speed" style="normal" x="10" y="10" color="243,118,29" hidden="true"/>
+            <sprite name="rotor4" idx="1" x="138.86512022365332" y="53.588412439575734" heading="-230" scale="0.15"
+                    rotation="1" draggable="false" costume="1" color="80,80,80" pen="tip" id="113">
+                <nest anchor="copter" synch="false"/>
+                <costumes>
+                    <list id="114">
+                        <item>
+                            <costume name="rotor" center-x="113" center-y="109.25" image="" id="115"/>
+                        </item>
+                        <item>
+                            <costume name="blue" center-x="113" center-y="108.75" image="" id="116"/>
+                        </item>
+                    </list>
+                </costumes>
+                <sounds>
+                    <list id="117"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveGo">
+                            <comment w="90" collapsed="false">rear right rotor</comment>
+                        </block>
+                        <block s="comeToFront"/>
+                        <block s="setHeading">
+                            <l>90</l>
+                        </block>
+                        <block s="doForever">
+                            <script>
+                                <block s="doIfElse">
+                                    <block s="reportTouchingObject">
+                                        <l>wall</l>
+                                    </block>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>blue</l>
+                                        </block>
+                                        <block s="doBroadcastAndWait">
+                                            <l>rear right</l>
+                                        </block>
+                                    </script>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>rotor</l>
+                                        </block>
+                                    </script>
                                 </block>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>blue</l>
-                                    </block>
-                                    <block s="doBroadcastAndWait">
-                                        <l>rear right</l>
-                                    </block>
-                                </script>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>rotor</l>
-                                    </block>
-                                </script>
-                            </block>
-                            <block s="turnLeft">
-                                <l>40</l>
-                            </block>
-                        </script>
-                    </block>
-                </script>
-            </scripts>
-        </sprite>
-        <sprite name="rotor1" idx="4" x="167.22652874196342" y="70.12438786043896" heading="245" scale="0.15" rotation="1" draggable="false" costume="1" color="80,80,80" pen="tip" id="144">
-            <nest anchor="copter" synch="false"/>
-            <costumes>
-                <list id="145">
-                    <item>
-                        <costume name="rotor" center-x="113" center-y="109.25" image="" id="146"/>
-                    </item>
-                    <item>
-                        <costume name="blue" center-x="113" center-y="108.75" image="" id="147"/>
-                    </item>
-                </list>
-            </costumes>
-            <sounds>
-                <list id="148"/>
-            </sounds>
-            <variables/>
-            <blocks/>
-            <scripts>
-                <script x="20" y="20">
-                    <block s="receiveGo">
-                        <comment w="90" collapsed="false">rear left rotor</comment>
-                    </block>
-                    <block s="comeToFront"/>
-                    <block s="setHeading">
-                        <l>45</l>
-                    </block>
-                    <block s="doForever">
-                        <script>
-                            <block s="doIfElse">
-                                <block s="reportTouchingObject">
-                                    <l>wall</l>
+                                <block s="turnLeft">
+                                    <l>40</l>
                                 </block>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>blue</l>
+                            </script>
+                        </block>
+                    </script>
+                </scripts>
+            </sprite>
+            <sprite name="rotor1" idx="4" x="167.22652874196342" y="70.12438786043896" heading="245" scale="0.15"
+                    rotation="1" draggable="false" costume="1" color="80,80,80" pen="tip" id="144">
+                <nest anchor="copter" synch="false"/>
+                <costumes>
+                    <list id="145">
+                        <item>
+                            <costume name="rotor" center-x="113" center-y="109.25" image="" id="146"/>
+                        </item>
+                        <item>
+                            <costume name="blue" center-x="113" center-y="108.75" image="" id="147"/>
+                        </item>
+                    </list>
+                </costumes>
+                <sounds>
+                    <list id="148"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveGo">
+                            <comment w="90" collapsed="false">rear left rotor</comment>
+                        </block>
+                        <block s="comeToFront"/>
+                        <block s="setHeading">
+                            <l>45</l>
+                        </block>
+                        <block s="doForever">
+                            <script>
+                                <block s="doIfElse">
+                                    <block s="reportTouchingObject">
+                                        <l>wall</l>
                                     </block>
-                                    <block s="doBroadcastAndWait">
-                                        <l>rear left</l>
-                                    </block>
-                                </script>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>rotor</l>
-                                    </block>
-                                </script>
-                            </block>
-                            <block s="turn">
-                                <l>40</l>
-                            </block>
-                        </script>
-                    </block>
-                </script>
-            </scripts>
-        </sprite>
-        <sprite name="rotor3" idx="2" x="155.4611417103099" y="24.905892879536623" heading="165" scale="0.15" rotation="1" draggable="false" costume="2" color="80,80,80" pen="tip" id="175">
-            <nest anchor="copter" synch="false"/>
-            <costumes>
-                <list id="176">
-                    <item>
-                        <costume name="rotor" center-x="113" center-y="109.25" image="" id="177"/>
-                    </item>
-                    <item>
-                        <costume name="red" center-x="113" center-y="108.75" image="" id="178"/>
-                    </item>
-                </list>
-            </costumes>
-            <sounds>
-                <list id="179"/>
-            </sounds>
-            <variables/>
-            <blocks/>
-            <scripts>
-                <script x="20" y="20">
-                    <block s="receiveGo">
-                        <comment w="90" collapsed="false">front right rotor</comment>
-                    </block>
-                    <block s="comeToFront"/>
-                    <block s="setHeading">
-                        <l>45</l>
-                    </block>
-                    <block s="doForever">
-                        <script>
-                            <block s="doIfElse">
-                                <block s="reportTouchingObject">
-                                    <l>wall</l>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>blue</l>
+                                        </block>
+                                        <block s="doBroadcastAndWait">
+                                            <l>rear left</l>
+                                        </block>
+                                    </script>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>rotor</l>
+                                        </block>
+                                    </script>
                                 </block>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>red</l>
-                                    </block>
-                                    <block s="doBroadcastAndWait">
-                                        <l>front right</l>
-                                    </block>
-                                </script>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>rotor</l>
-                                    </block>
-                                </script>
-                            </block>
-                            <block s="turn">
-                                <l>40</l>
-                            </block>
-                        </script>
-                    </block>
-                </script>
-            </scripts>
-        </sprite>
-        <sprite name="rotor2" idx="3" x="183.9479509914745" y="41.438332922904635" heading="-350" scale="0.15" rotation="1" draggable="false" costume="1" color="80,80,80" pen="tip" id="206">
-            <nest anchor="copter" synch="false"/>
-            <costumes>
-                <list id="207">
-                    <item>
-                        <costume name="rotor" center-x="113" center-y="109.25" image="" id="208"/>
-                    </item>
-                    <item>
-                        <costume name="red" center-x="113" center-y="108.75" image="" id="209"/>
-                    </item>
-                </list>
-            </costumes>
-            <sounds>
-                <list id="210"/>
-            </sounds>
-            <variables/>
-            <blocks/>
-            <scripts>
-                <script x="20" y="20">
-                    <block s="receiveGo">
-                        <comment w="90" collapsed="false">front left rotor</comment>
-                    </block>
-                    <block s="comeToFront"/>
-                    <block s="setHeading">
-                        <l>90</l>
-                    </block>
-                    <block s="doForever">
-                        <script>
-                            <block s="doIfElse">
-                                <block s="reportTouchingObject">
-                                    <l>wall</l>
+                                <block s="turn">
+                                    <l>40</l>
                                 </block>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>red</l>
+                            </script>
+                        </block>
+                    </script>
+                </scripts>
+            </sprite>
+            <sprite name="rotor3" idx="2" x="155.4611417103099" y="24.905892879536623" heading="165" scale="0.15"
+                    rotation="1" draggable="false" costume="2" color="80,80,80" pen="tip" id="175">
+                <nest anchor="copter" synch="false"/>
+                <costumes>
+                    <list id="176">
+                        <item>
+                            <costume name="rotor" center-x="113" center-y="109.25" image="" id="177"/>
+                        </item>
+                        <item>
+                            <costume name="red" center-x="113" center-y="108.75" image="" id="178"/>
+                        </item>
+                    </list>
+                </costumes>
+                <sounds>
+                    <list id="179"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveGo">
+                            <comment w="90" collapsed="false">front right rotor</comment>
+                        </block>
+                        <block s="comeToFront"/>
+                        <block s="setHeading">
+                            <l>45</l>
+                        </block>
+                        <block s="doForever">
+                            <script>
+                                <block s="doIfElse">
+                                    <block s="reportTouchingObject">
+                                        <l>wall</l>
                                     </block>
-                                    <block s="doBroadcastAndWait">
-                                        <l>front left</l>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>red</l>
+                                        </block>
+                                        <block s="doBroadcastAndWait">
+                                            <l>front right</l>
+                                        </block>
+                                    </script>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>rotor</l>
+                                        </block>
+                                    </script>
+                                </block>
+                                <block s="turn">
+                                    <l>40</l>
+                                </block>
+                            </script>
+                        </block>
+                    </script>
+                </scripts>
+            </sprite>
+            <sprite name="rotor2" idx="3" x="183.9479509914745" y="41.438332922904635" heading="-350" scale="0.15"
+                    rotation="1" draggable="false" costume="1" color="80,80,80" pen="tip" id="206">
+                <nest anchor="copter" synch="false"/>
+                <costumes>
+                    <list id="207">
+                        <item>
+                            <costume name="rotor" center-x="113" center-y="109.25" image="" id="208"/>
+                        </item>
+                        <item>
+                            <costume name="red" center-x="113" center-y="108.75" image="" id="209"/>
+                        </item>
+                    </list>
+                </costumes>
+                <sounds>
+                    <list id="210"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveGo">
+                            <comment w="90" collapsed="false">front left rotor</comment>
+                        </block>
+                        <block s="comeToFront"/>
+                        <block s="setHeading">
+                            <l>90</l>
+                        </block>
+                        <block s="doForever">
+                            <script>
+                                <block s="doIfElse">
+                                    <block s="reportTouchingObject">
+                                        <l>wall</l>
                                     </block>
-                                </script>
-                                <script>
-                                    <block s="doSwitchToCostume">
-                                        <l>rotor</l>
-                                    </block>
-                                </script>
-                            </block>
-                            <block s="turnLeft">
-                                <l>40</l>
-                            </block>
-                        </script>
-                    </block>
-                </script>
-            </scripts>
-        </sprite>
-    </sprites>
-</stage>
-<hidden/>
-<headers/>
-<code/>
-<blocks/>
-<variables/>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>red</l>
+                                        </block>
+                                        <block s="doBroadcastAndWait">
+                                            <l>front left</l>
+                                        </block>
+                                    </script>
+                                    <script>
+                                        <block s="doSwitchToCostume">
+                                            <l>rotor</l>
+                                        </block>
+                                    </script>
+                                </block>
+                                <block s="turnLeft">
+                                    <l>40</l>
+                                </block>
+                            </script>
+                        </block>
+                    </script>
+                </scripts>
+            </sprite>
+        </sprites>
+    </stage>
+    <hidden/>
+    <headers/>
+    <code/>
+    <blocks/>
+    <variables/>
 </project>

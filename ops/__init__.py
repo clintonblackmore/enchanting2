@@ -1,4 +1,3 @@
-
 """This package contains a number of functions that
 operate on sprites or classes.  You look up the function
 that you want using ops.bind_to_function("function_name").

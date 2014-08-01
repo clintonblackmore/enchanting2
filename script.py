@@ -5,178 +5,181 @@
 """
 
 from xml.etree.cElementTree import Element
+
 import gevent
 
 import data
 import factory
 import ops
 
+
 class Block(object):
-	"""This is a code block, representing an instruction to execute"""
-	
-	def __init__(self):
-		self.function = None	# used to actually call the function
-		self.function_name = ""	# the original, textual name of the function
-		self.arguments = []
-		self.var_name = None	# only set if this is a 'var' block
-								
-	def deserialize(self, elem):
-		"Load from an xml element tree"
-		assert(elem.tag == "block") # or elem.tag == "custom-block")
-		self.function_name = elem.get("s")
-		if self.function_name is None:
-			# there is no function name; this must be a var block
-			self.var_name = elem.get("var")
-			self.function_name = "var"		
-		self.function = ops.bind_to_function(self.function_name)
-			
-		self.arguments = [factory.deserialize_value(child) 
-		                  for child in elem]
-	
-	def serialize(self):
-		"Save out as an element tree"
-		if self.var_name is None:
-			# this is a standard block
-			block = Element("block", s=self.function_name)
-		else:
-			# this is a var block
-			block = Element("block", var=self.var_name)
-		for arg in self.arguments:
-			block.append(arg.serialize())
-		return block
-	
-	def is_hat_block(self):
-		"Is this a hat-shaped, script-triggering block?"
-		# appropriate function names include receiveGo, receiveKey, receiveBroadcast
-		return self.function_name.startswith("receive")	
-		
-	def evaluate(self, target, script):
-		# evaluate each of the arguments
-		if self.var_name is None:
-			args = []
-			args = [arg.evaluate(target, script) for arg in self.arguments 
-					if not isinstance(arg, (data.Comment))]
-					#if not isinstance(arg, (data.Comment, Script))]
-		else:
-			args = self.var_name
-		
-		# now, run this function
-		if self.function is not None:
-			result = self.function(target, script, args)		
-		else:
-			print "Unknown function: %s" % self.function_name
-			result = data.Literal(None)
-	
-		# to do -- save args and result with timestamp
-		
-		return result
+    """This is a code block, representing an instruction to execute"""
 
-	def __repr__(self):
-		# Shows state; can't reconstruct from this info
-		return "%s(%r)" % (self.__class__, self.__dict__)
+    def __init__(self):
+        self.function = None  # used to actually call the function
+        self.function_name = ""  # the original, textual name of the function
+        self.arguments = []
+        self.var_name = None  # only set if this is a 'var' block
 
-	def __str__(self):
-		return "%s(%s)" % (self.function_name, ", ".join([str(s) for s in self.arguments])) 
+    def deserialize(self, elem):
+        "Load from an xml element tree"
+        assert (elem.tag == "block")  # or elem.tag == "custom-block")
+        self.function_name = elem.get("s")
+        if self.function_name is None:
+            # there is no function name; this must be a var block
+            self.var_name = elem.get("var")
+            self.function_name = "var"
+        self.function = ops.bind_to_function(self.function_name)
+
+        self.arguments = [factory.deserialize_value(child)
+                          for child in elem]
+
+    def serialize(self):
+        "Save out as an element tree"
+        if self.var_name is None:
+            # this is a standard block
+            block = Element("block", s=self.function_name)
+        else:
+            # this is a var block
+            block = Element("block", var=self.var_name)
+        for arg in self.arguments:
+            block.append(arg.serialize())
+        return block
+
+    def is_hat_block(self):
+        "Is this a hat-shaped, script-triggering block?"
+        # appropriate function names include receiveGo, receiveKey, receiveBroadcast
+        return self.function_name.startswith("receive")
+
+    def evaluate(self, target, script):
+        # evaluate each of the arguments
+        if self.var_name is None:
+            args = []
+            args = [arg.evaluate(target, script) for arg in self.arguments
+                    if not isinstance(arg, (data.Comment))]
+            # if not isinstance(arg, (data.Comment, Script))]
+        else:
+            args = self.var_name
+
+        # now, run this function
+        if self.function is not None:
+            result = self.function(target, script, args)
+        else:
+            print "Unknown function: %s" % self.function_name
+            result = data.Literal(None)
+
+        # to do -- save args and result with timestamp
+
+        return result
+
+    def __repr__(self):
+        # Shows state; can't reconstruct from this info
+        return "%s(%r)" % (self.__class__, self.__dict__)
+
+    def __str__(self):
+        return "%s(%s)" % (self.function_name, ", ".join([str(s) for s in self.arguments]))
+
 
 class Script(object):
-	"Represents a sequence of instructions"
-	
-	def __init__(self):
-		# Only top-level scripts contain x and y values
-		self.x = None
-		self.y = None
-		self.blocks = []
-		self.from_start()
-		
-	def from_start(self):
-		"Sets or re-sets the script to begin and the start"
-		self.code_pos = 0
-		self.subscript = None	# set by flow control blocks
-		self.repeat = 0			# adjusted by flow control blocks
-		return self
-	
-	def deserialize(self, elem):
-		"Loads this class from an element tree representation"
-		assert(elem.tag == "script")
+    "Represents a sequence of instructions"
 
-		# attributes
-		self.x = elem.get("x")
-		self.y = elem.get("y")
+    def __init__(self):
+        # Only top-level scripts contain x and y values
+        self.x = None
+        self.y = None
+        self.blocks = []
+        self.from_start()
 
-		self.from_start()
+    def from_start(self):
+        "Sets or re-sets the script to begin and the start"
+        self.code_pos = 0
+        self.subscript = None  # set by flow control blocks
+        self.repeat = 0  # adjusted by flow control blocks
+        return self
 
-		# our children are a sequence of blocks or custom blocks
-		self.blocks = []
-		for block in elem:
-			b = Block()
-			b.deserialize(block)
-			self.blocks.append(b)
+    def deserialize(self, elem):
+        "Loads this class from an element tree representation"
+        assert (elem.tag == "script")
 
-	def serialize(self):
-		"Return an elementtree representing this object"
-		
-		# We have sprite objects and watcher nodes; make a tree of nodes
-		if self.x is None or self.y is None:
-			script = Element("script")
-		else:
-			script = Element("script", x=self.x, y=self.y)
-					
-		for block in self.blocks:
-			script.append(block.serialize())
-						
-		return script	
+        # attributes
+        self.x = elem.get("x")
+        self.y = elem.get("y")
 
-	def top_block(self):
-		"Returns the first block in the script (which may be used to trigger the script)"
-		if self.blocks and len(self.blocks) > 0:
-			return self.blocks[0]
-		return None
+        self.from_start()
 
-	def step(self, target):
-		"Execute a line of code; raises StopIteration when there is no more code"
+        # our children are a sequence of blocks or custom blocks
+        self.blocks = []
+        for block in elem:
+            b = Block()
+            b.deserialize(block)
+            self.blocks.append(b)
 
-		# Are we inside a nested script?
-		if self.subscript:
-			# step the script until it is done
-			try:
-#				print "(sub) ",
-				self.subscript.step(target)
-			except StopIteration:
-#				print "(exit)"
-				self.subscript = None
-		else:
-			if self.code_pos < len(self.blocks):
-				current_block = self.blocks[self.code_pos]
-			else:
-				raise StopIteration
-		
-#			print current_block,
-			current_block.evaluate(target, self)
-#			print "(repeat %s)" % self.repeat
-			if not self.repeat:
-				self.code_pos += 1
+    def serialize(self):
+        "Return an elementtree representing this object"
 
-	def evaluate(self, target, script):
-		"Scripts (in arguments) evaluate to themselves.  [They can be run separately]"
-		return self
+        # We have sprite objects and watcher nodes; make a tree of nodes
+        if self.x is None or self.y is None:
+            script = Element("script")
+        else:
+            script = Element("script", x=self.x, y=self.y)
 
-	def run(self, target):
-		"Runs the code until it is done (if it ever finishes)"
-		try:
-			while True:
-				self.step(target)
-				gevent.sleep(0.01)
-		except StopIteration:
-			pass
-	
-	def starts_on_trigger(self):
-		"After the script runs, should it be queued up to be triggered again?"
-		tb = self.top_block()
-		if tb:
-			return tb.is_hat_block()
-		return False
-				
-	def __str__(self):
-		return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
+        for block in self.blocks:
+            script.append(block.serialize())
+
+        return script
+
+    def top_block(self):
+        "Returns the first block in the script (which may be used to trigger the script)"
+        if self.blocks and len(self.blocks) > 0:
+            return self.blocks[0]
+        return None
+
+    def step(self, target):
+        "Execute a line of code; raises StopIteration when there is no more code"
+
+        # Are we inside a nested script?
+        if self.subscript:
+            # step the script until it is done
+            try:
+                # print "(sub) ",
+                self.subscript.step(target)
+            except StopIteration:
+                # print "(exit)"
+                self.subscript = None
+        else:
+            if self.code_pos < len(self.blocks):
+                current_block = self.blocks[self.code_pos]
+            else:
+                raise StopIteration
+
+                # print current_block,
+            current_block.evaluate(target, self)
+            # print "(repeat %s)" % self.repeat
+            if not self.repeat:
+                self.code_pos += 1
+
+    def evaluate(self, target, script):
+        "Scripts (in arguments) evaluate to themselves.  [They can be run separately]"
+        return self
+
+    def run(self, target):
+        "Runs the code until it is done (if it ever finishes)"
+        try:
+            while True:
+                self.step(target)
+                gevent.sleep(0.01)
+        except StopIteration:
+            pass
+
+    def starts_on_trigger(self):
+        "After the script runs, should it be queued up to be triggered again?"
+        tb = self.top_block()
+        if tb:
+            return tb.is_hat_block()
+        return False
+
+    def __str__(self):
+        return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
 
 		
