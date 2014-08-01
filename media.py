@@ -1,8 +1,8 @@
-"""media.py.  
+"""media.py.
 
 Here we deal with all media-relate stuff (ie. sounds and images).
 
-All audio and graphics are to be done here, 
+All audio and graphics are to be done here,
 so that a fork of Enchanting 2 could be done without
 requiring pygame."""
 
@@ -18,6 +18,7 @@ import actor
 
 
 class PyGameMediaEnvironment(object):
+
     def __init__(self):
         pygame.init()
         pygame.key.set_repeat(100, 100)  # keys repeat every 100 ms
@@ -28,9 +29,8 @@ class PyGameMediaEnvironment(object):
         # Fonts
         self.speech_font = None
 
-
     def setup_for_project(self, project):
-        "We have loaded a new project.  Adjust setup if necessary"
+        """We have loaded a new project.  Adjust setup if necessary"""
         self.width = project.stage.width
         self.height = project.stage.height
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -50,11 +50,11 @@ class PyGameMediaEnvironment(object):
         self.finished_frame()
 
     def finished_frame(self):
-        "Called after every sequence of drawing commands"
+        """Called after every sequence of drawing commands"""
         pygame.display.update()
 
     def check_for_events(self, event_loop):
-        "Called between frames"
+        """Called between frames"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 event_loop.trigger_quit_event()
@@ -63,7 +63,8 @@ class PyGameMediaEnvironment(object):
                 event_loop.trigger_key_press((self, event))
 
     def stage_pos_to_screen_pos(self, stage_pos):
-        "Sprites are positioned on the stage; we need to know where to draw them on the screen"
+        """Sprites are positioned on the stage;
+        we need to know where to draw them on the screen"""
         stage_x, stage_y = stage_pos
 
         # for a typical 480x360 stage,
@@ -76,20 +77,22 @@ class PyGameMediaEnvironment(object):
         return (screen_x, screen_y)
 
     def stage_pos_to_nearest_screen_pos(self, stage_pos):
-        "Returns integer coordinates after mapping a stage position onto a screen position"
+        """Returns integer coordinates after mapping a
+        stage position onto a screen position"""
         screen_x, screen_y = self.stage_pos_to_screen_pos(stage_pos)
         return (int(round(screen_x)), int(round(screen_y)))
 
     def create_speech_message(self, message, is_thought_bubble):
-        "Creates a speech message and returns it in some format"
+        """Creates a speech message and returns it in some format"""
         return self.speech_font.render(message, 1, (0, 0, 0)).convert_alpha()
 
     def draw_speech_message(self, speech_message, position):
-        "Shows a speech message created by 'create_speech_message'"
-        self.screen.blit(speech_message, self.stage_pos_to_nearest_screen_pos(position))
+        """Shows a speech message created by 'create_speech_message'"""
+        self.screen.blit(
+            speech_message, self.stage_pos_to_nearest_screen_pos(position))
 
     def does_key_event_match(self, key_name, key_event):
-        "Does this key event match the item checking for a key?"
+        """Does this key event match the item checking for a key?"""
         print "Does %s match %s?" % (key_name, key_event)
         if len(key_name) == 1:
             return key_name.upper() == key_event.unicode.upper()
@@ -122,15 +125,16 @@ def load_image_from_string(s):
 
 
 class Costume(object):
+
     """A costume is a graphical representation of a stage or sprite.
 
     Each stage or sprite has zero or more costumes.
 
     The XML for a costume looks like this:
 
-    <costume name="costume1" center-x="78" center-y="32" image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
+    <costume name="costume1" center-x="78" center-y="32"
+      image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
     """
-
 
     def __init__(self):
         self.name = "???"
@@ -140,7 +144,7 @@ class Costume(object):
         self.id = 0
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
         assert (elem.tag == "costume")
 
         self.name = elem.get("name")
@@ -152,12 +156,11 @@ class Costume(object):
         self.image = load_image_from_string(self.raw_image)
 
         # if self.image == None:
-
-    #	import xml.etree.cElementTree as ElementTree
-    #	print "Bad Image Node: " + ElementTree.dump(elem)
+        #   import xml.etree.cElementTree as ElementTree
+        #   print "Bad Image Node: " + ElementTree.dump(elem)
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
 
         node = Element("costume")
 
@@ -171,6 +174,7 @@ class Costume(object):
 
 
 class Costumes(object):
+
     """A stage or sprite is depicted by drawing its current costume.
 
     Each sprite or stage has zero or more costumes.
@@ -187,13 +191,16 @@ class Costumes(object):
     <costumes>
         <list id="15">
             <item>
-                <costume name="costume1" center-x="78" center-y="32" image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
+                <costume name="costume1" center-x="78" center-y="32"
+                   image="data:image/png;base64,iVBORw0KGgoAAA..." id="16"/>
             </item>
             <item>
-                <costume name="costume2" center-x="163" center-y="75" image="data:image/png;base64,iVBORw0KGgoAA..." id="17"/>
+                <costume name="costume2" center-x="163" center-y="75"
+                   image="data:image/png;base64,iVBORw0KGgoAA..." id="17"/>
             </item>
             <item>
-                <costume name="costume3" center-x="188" center-y="76" image="data:image/png;base64,iVBORw0KGgoAAA..." id="18"/>
+                <costume name="costume3" center-x="188" center-y="76"
+                   image="data:image/png;base64,iVBORw0KGgoAAA..." id="18"/>
             </item>
         </list>
     </costumes>
@@ -203,14 +210,14 @@ class Costumes(object):
         self.list_node = None
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
         assert (elem.tag == "costumes")
         assert (len(elem) == 1)  # we should have one child -- a list node
         self.list_node = data.List()
         self.list_node.deserialize(elem[0])
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
         costumes_node = Element("costumes")
         costumes_node.append(self.list_node.serialize())
         return costumes_node
@@ -221,7 +228,7 @@ class Costumes(object):
                 costume.image = costume.image.convert_alpha()
 
     def draw_stage(self, media_env, index):
-        "Draws a background for the stage"
+        """Draws a background for the stage"""
         index -= 1  # convert 1-based index to 0-based index
         image = None
 
@@ -235,7 +242,7 @@ class Costumes(object):
             media_env.screen.blit(image, (0, 0))
 
     def index_for_costume(self, literal):
-        "Takes a number/string and returns a valid costume number"
+        """Takes a number/string and returns a valid costume number"""
         if not self.list_node:
             return 0
         list_length = len(self.list_node)
@@ -249,7 +256,7 @@ class Costumes(object):
                 return index + 1  # convert from 0-based to 1-based indices
 
     def index_for_next_costume(self, current_index):
-        "What is the index number for the next costume?"
+        """What is the index number for the next costume?"""
         if not self.list_node:
             return current_index
         list_length = len(self.list_node)
@@ -280,4 +287,3 @@ class Costumes(object):
             rect = image.get_rect()
             rect.center = pos
             media_env.screen.blit(image, rect)
-			

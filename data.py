@@ -17,12 +17,12 @@ import factory
 # Utility functions
 
 def number_from_string(s):
-    "Takes a string and returns a number"
+    """Takes a string and returns a number"""
     return float(s)
 
 
 def number_to_string(n):
-    "Returns a number as a string, favouring integers over floats"
+    """Returns a number as a string, favouring integers over floats"""
     if int(n) == n:
         return str(int(n))
         # return str(n)
@@ -30,7 +30,7 @@ def number_to_string(n):
 
 
 def bool_from_string(s):
-    "Takes an xml string and returns a bool"
+    """Takes an xml string and returns a bool"""
     if s == "true":
         return True
     if s == "false":
@@ -39,13 +39,14 @@ def bool_from_string(s):
 
 
 def bool_to_string(b):
-    "Takes a python boolean and returns a string for xml"
+    """Takes a python boolean and returns a string for xml"""
     if b:
         return "true"
     return "false"
 
 
 class Literal(object):
+
     """Represents a single value.
     It might be a number, a boolean, a string, or so on.
     It is not a variable, and has no name."""
@@ -60,7 +61,7 @@ class Literal(object):
         self.is_option = False  # Is this an option selected from a combo box?
 
     def set_value(self, value):
-        "In order of priority, value is a boolean, number, or string"
+        """In order of priority, value is a boolean, number, or string"""
         if isinstance(value, bool):
             self.value = value
         else:
@@ -70,7 +71,7 @@ class Literal(object):
                 self.value = value
 
     def deserialize(self, elem):
-        "Load from an xml element tree"
+        """Load from an xml element tree"""
         assert (elem.tag == "l" or elem.tag == "bool")
 
         if elem.tag == "l":
@@ -84,7 +85,7 @@ class Literal(object):
             self.set_value(elem.text == "true")
 
     def serialize(self):
-        "Save out as an element tree"
+        """Save out as an element tree"""
         if isinstance(self.value, bool):
             literal = Element("bool")
             literal.text = self.as_string()
@@ -135,7 +136,7 @@ class Literal(object):
         return str(self.value)
 
     def evaluate(self, target, script):
-        "Literals are already evaluated, but the caller doesn't know that"
+        """Literals are already evaluated, but the caller doesn't know that"""
         return self
 
     # expose as different types
@@ -146,7 +147,7 @@ class Literal(object):
             return 0
 
     def as_number_if_number(self):
-        "Returns a number only if it can reasonably be construed as a number; None otherwise"
+        """Returns a number if a number; None otherwise"""
         try:
             return float(self.value)
         except:
@@ -168,6 +169,7 @@ class Literal(object):
 
 
 class Color(object):
+
     """Represents a color.
 
     Note: at the moment, we don't care about what it means
@@ -197,7 +199,7 @@ class Color(object):
         return self.color_string == other.color_string
 
     def evaluate(self, target, script):
-        "Colors are already evaluated, but the caller doesn't know that"
+        """Colors are already evaluated, but the caller doesn't know that"""
         return self
 
     # expose as different types
@@ -215,6 +217,7 @@ class Color(object):
 
 
 class Comment(object):
+
     """This is a comment off to the side of a block.  Example XML:
     <block s="receiveGo">
         <comment w="90" collapsed="false">rear right rotor</comment>
@@ -236,6 +239,7 @@ class Comment(object):
 
 
 class List(object):
+
     """Represents a list.
 
     A sample list in xml might look like:
@@ -261,14 +265,13 @@ class List(object):
 
     """
 
-
     def __init__(self):
         self.list = []
         self.id = None
         self.broken_into_items = False
 
     def deserialize(self, elem):
-        "Load from an xml element tree"
+        """Load from an xml element tree"""
         assert (elem.tag == "list")
         self.id = elem.get("id")
 
@@ -283,7 +286,7 @@ class List(object):
                          for item in elem]
 
     def serialize(self):
-        "Save out as an element tree"
+        """Save out as an element tree"""
         list_node = Element("list")
         if self.id is not None:
             list_node.set("id", self.id)
@@ -305,7 +308,8 @@ class List(object):
 
         # def __repr__(self):
 
-    #		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.contents)
+    # return "%s(%r, %r)" % (self.__class__.__name__, self.name,
+    # self.contents)
 
     def __str__(self):
         return "%r" % (self.list, )
@@ -335,6 +339,7 @@ class List(object):
 
 
 class Variable(object):
+
     """Represents a value that changes over time.
     Contains something like a Literal, Bool, or List"""
 
@@ -343,7 +348,7 @@ class Variable(object):
         self.name = name
 
     def deserialize(self, elem):
-        "Load from an xml element tree"
+        """Load from an xml element tree"""
         assert (elem.tag == "variable")
         self.name = elem.get("name")
 
@@ -354,7 +359,7 @@ class Variable(object):
             assert (self.contents is not None)
 
     def serialize(self):
-        "Save out as an element tree"
+        """Save out as an element tree"""
         variable = Element("variable", name=self.name)
         if self.contents is not None:
             variable.append(self.contents.serialize())
@@ -364,13 +369,14 @@ class Variable(object):
         return self.name == other.name and self.contents == other.contents
 
     def __repr__(self):
-        return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.contents)
+        return "%s(%r, %r)" % (
+            self.__class__.__name__, self.name, self.contents)
 
     def __str__(self):
         return "%r: %s" % (self.name, self.contents)
 
     def set(self, value):
-        "Sets a variable.  Pass in a Literal or other object as a value"
+        """Sets a variable.  Pass in a Literal or other object as a value"""
         self.contents = value
 
     # to do -- record if there has been a change
@@ -386,12 +392,14 @@ class Variable(object):
 
 
 class Variables(object):
-    """This is a collection of 'Variable' objects, as used by the project, stage, and sprites"""
+
+    """This is a collection of 'Variable' objects,
+    as used by the project, stage, and sprites"""
 
     def __init__(self, input=None):
         # ordered dict so we can serialize in the order we deserialized
         # (possibly doesn't really matter, but it helps with the unit tests)
-        if input == None:
+        if input is None:
             self.variables = OrderedDict()
         else:
             self.variables = input
@@ -400,7 +408,7 @@ class Variables(object):
         self.variables[v.name] = v
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
         assert (elem.tag == "variables")
 
         # Clear out all non-internal variables
@@ -416,7 +424,7 @@ class Variables(object):
             self.add(v)
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
         variables = Element("variables")
         for variable in self.variables.values():
             # Do not serialize internal variables
@@ -438,11 +446,3 @@ class Variables(object):
         if name in self.variables:
             return self.variables[name]
         return None
-	
-		
-		
-
-			
-	
-	
-			

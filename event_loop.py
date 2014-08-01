@@ -7,7 +7,7 @@ import data
 
 
 def is_trigger_key(top_block, media_and_event):
-    "True if the key code matches the key in the wait for keypress hat block"
+    """True if user pressed key hat block is waiting for."""
     key_name = top_block.arguments[0].as_string()
     media_env, event = media_and_event
     return media_env.does_key_event_match(key_name, event)
@@ -22,17 +22,19 @@ def does_match_broadcast(top_block, message_string):
 
 
 class EventLoop(object):
+
     def __init__(self):
         self.active_scripts = gevent.pool.Group()
         self.sleeping_scripts = []
 
     def queue(self, script, sprite):
-        "Queues up a script"
-        # Scripts usually start with a hat block and do nothing until it is activated
+        """Queues up a script"""
+        # Scripts usually start with a hat block and do nothing until it is
+        # activated
         self.sleeping_scripts.append((script, sprite))
 
     def run(self, project, media_environment):
-        "Runs all the scripts in the project"
+        """Runs all the scripts in the project"""
 
         # This is the main loop
         # It checks for events (from pygame)
@@ -47,34 +49,35 @@ class EventLoop(object):
             media_environment.draw(project)
 
     def trigger_quit_event(self):
-        "Anything we need to do before quitting? Do it now!"
+        """Anything we need to do before quitting? Do it now!"""
         print "Quitting"
         pass
 
     def trigger_key_press(self, media_and_event):
-        "A key was pressed"
+        """A key was pressed"""
         self.trigger_scripts("receiveKey", is_trigger_key, media_and_event)
 
     def trigger_green_flag(self):
-        "The green flag was pressed / the project is starting"
+        """The green flag was pressed / the project is starting"""
         self.trigger_scripts("receiveGo")
 
     def broadcast_message(self, message_string):
-        "A message was broadcast"
-        self.trigger_scripts("receiveMessage", does_match_broadcast, message_string)
+        """A message was broadcast"""
+        self.trigger_scripts(
+            "receiveMessage", does_match_broadcast, message_string)
 
     def trigger_scripts(self, function_name_match, callback=None, data=None):
-        "Trigger all sleeping scripts that match specified conditions"
+        """Trigger all sleeping scripts that match specified conditions"""
 
         # We can't remove items from the list in-place,
         # so we create a new list of sleeping scripts
         new_sleeping_scripts = []
         # print "sleeping scripts: %s, active scripts: %s" % \
-        #	(len(self.sleeping_scripts), len(self.active_scripts))
+        #    (len(self.sleeping_scripts), len(self.active_scripts))
         for script, sprite in self.sleeping_scripts:
             top_block = script.top_block()
             if top_block and top_block.function_name == function_name_match \
-                    and (callback == None or callback(top_block, data) == True):
+                    and (callback is None or callback(top_block, data)):
                 # activate this script
                 greenlet = gevent.spawn(self.run_script, script, sprite)
                 self.active_scripts.add(greenlet)
@@ -84,7 +87,7 @@ class EventLoop(object):
         self.sleeping_scripts = new_sleeping_scripts
 
     def run_script(self, script, sprite):
-        "Runs a script, and queues it up to run again if needs be"
+        """Runs a script, and queues it up to run again if needs be"""
         script.run(sprite)
         if script.starts_on_trigger():
             self.queue(script.from_start(), sprite)

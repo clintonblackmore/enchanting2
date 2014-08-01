@@ -19,5 +19,3 @@ def bind_to_function(function_name):
         except AttributeError:
             pass
     return None
-
-	

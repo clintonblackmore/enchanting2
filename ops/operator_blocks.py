@@ -9,6 +9,7 @@ import data
 # to do
 # reifyScript, reifyReporter, reifyPredicate
 
+
 def reportSum(target_actor, parent_script, args):
     return data.Literal(args[0].as_number() + args[1].as_number())
 
@@ -84,7 +85,3 @@ def reportFalse(target_actor, parent_script, args):
     return data.Literal(False)
 
 # many more to do here
-
-
-
-	

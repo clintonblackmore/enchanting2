@@ -6,7 +6,8 @@ import media
 
 
 def deserialize_value(element):
-    "Get an object representing this element, be it a literal, list or what-not"
+    """Get an object representing this element,
+    be it a literal, list or what-not"""
 
     class_map = {"l": data.Literal,
                  "bool": data.Literal,
@@ -17,10 +18,10 @@ def deserialize_value(element):
                  "script": script.Script,
                  "costume": media.Costume,
                  "costumes": media.Costumes,
-    }
+                 }
 
     # if element.tag == "list":
-    #	ElementTree.dump(element)
+    #    ElementTree.dump(element)
 
     item = class_map[element.tag]()
     item.deserialize(element)

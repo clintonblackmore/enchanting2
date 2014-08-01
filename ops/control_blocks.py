@@ -5,6 +5,8 @@ import data
 """These are the yellow 'control' blocks"""
 
 # The 'receive' blocks don't actually do their work here
+
+
 def receiveGo(target_actor, parent_script, args):
     return None
 
@@ -33,7 +35,8 @@ def doRepeat(target_actor, parent_script, args):
     # Did we just start for the first time?
     if not parent_script.repeat:
         # Yes, this is the first time
-        parent_script.repeat = initial_count.evaluate(target_actor, parent_script).as_number()
+        parent_script.repeat = initial_count.evaluate(
+            target_actor, parent_script).as_number()
     else:
         parent_script.repeat -= 1
 
@@ -68,9 +71,5 @@ def doIfElse(target_actor, parent_script, args):
 def doBroadcast(target_actor, parent_script, args):
     message = args[0].as_string()
     target_actor.project.event_loop.broadcast_message(message)
-
-
-
-
 
     # to do -- lots!

@@ -27,7 +27,3 @@ def doHideVar(target_actor, parent_script, args):
     return target_actor.show_variable(name, False)
 
 # many more to do here
-
-
-
-	

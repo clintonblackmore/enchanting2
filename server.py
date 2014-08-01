@@ -17,18 +17,22 @@ def static_file_server(environ, start_response):
         # We need to create a directory listing
         # One line per file
         crawl_dir = filename  # local directory we are looking at
-        http_dir = environ["PATH_INFO"].lstrip("/")  # relative URL of directory
+        # relative URL of directory
+        http_dir = environ["PATH_INFO"].lstrip("/")
 
         # special case -- if we are looking at the root directory,
         # return the snap web page
         if http_dir == "":
             filename = "web/snap.html"
         else:
-            # If the directory doesn't end in a "/", we have to issue a redirect
+            # If the directory doesn't end in a "/", we have to issue a
+            # redirect
             if not http_dir.endswith("/"):
-                start_response('301 Redirect', [('Location', '/' + http_dir + '/'), ])
+                start_response(
+                    '301 Redirect', [('Location', '/' + http_dir + '/'), ])
                 return "301 Moved Permanently"
-            content = "<html><head></head><body><h1>Listing of %s</h1><pre>" % http_dir
+            content = "<html><head></head><body>" \
+                      "<h1>Listing of %s</h1><pre>" % http_dir
             filelist = os.listdir(crawl_dir)
             hreflist = ['<a href="%s">%s</a>' % (f, f) for f in filelist]
             content += "\n".join(hreflist)
@@ -40,7 +44,7 @@ def static_file_server(environ, start_response):
             mime = "application/javascript"
         content = open(filename).readlines()
 
-    if content == None:
+    if content is None:
         status = "404 Not Found"
         content = "<h1>404 Not found</h1><p>%s does not exist" % (filename)
 
@@ -57,4 +61,3 @@ def run_web_servers(port):
     server = WebSocketServer(("", port), resource, debug=True)
     print "Now listening on port %d" % port
     server.serve_forever()
-    

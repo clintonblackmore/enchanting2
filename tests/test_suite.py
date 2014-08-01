@@ -55,7 +55,7 @@ def clean_output_directories():
                 try:
                     if os.path.isfile(file_path):
                         os.unlink(file_path)
-                except Exception, e:
+                except Exception as e:
                     print e
 
 
@@ -72,6 +72,7 @@ def search_tree_for_anomalies(tree):
 
 
 class PyInterpreterTestCase(unittest.TestCase):
+
     def test_number_to_string_conversion(self):
         for item in [0, 7, 40, 500, 0.2, 1e5, -14.7, 138.86512022365332]:
             self.assertEqual(item,
@@ -91,14 +92,15 @@ class PyInterpreterTestCase(unittest.TestCase):
                     f.write(data)
         self.assertEqual(xml, new_xml)
 
-
     def test_boolean_to_string_conversion(self):
 
         self.assertEqual(True, data.bool_from_string("true"))
         self.assertEqual(False, data.bool_from_string("false"))
 
-        self.assertRaises(ValueError, data.bool_from_string, ("True",))  # no capital!
-        self.assertRaises(ValueError, data.bool_from_string, ("False",))  # no capital!
+        self.assertRaises(
+            ValueError, data.bool_from_string, ("True",))  # no capital!
+        self.assertRaises(
+            ValueError, data.bool_from_string, ("False",))  # no capital!
         self.assertRaises(ValueError, data.bool_from_string, ("",))
         self.assertRaises(ValueError, data.bool_from_string, ("0",))
         self.assertRaises(ValueError, data.bool_from_string, ("1",))
@@ -144,10 +146,12 @@ class PyInterpreterTestCase(unittest.TestCase):
         self.do_test_serialization_from_all_xml_files_of(Project(None), [])
 
     def test_serialization_of_sprite(self):
-        self.do_test_serialization_from_all_xml_files_of(Sprite(None), ["stage", "sprites", "sprite"])
+        self.do_test_serialization_from_all_xml_files_of(
+            Sprite(None), ["stage", "sprites", "sprite"])
 
     def test_serialization_of_stage(self):
-        self.do_test_serialization_from_all_xml_files_of(Stage(None), ["stage"])
+        self.do_test_serialization_from_all_xml_files_of(
+            Stage(None), ["stage"])
 
     def test_literal_values(self):
         l = Literal()
@@ -286,7 +290,8 @@ class PyInterpreterTestCase(unittest.TestCase):
         self.assertEqual(0, v.value().as_number())
         self.assertEqual("", v.value().as_string())
 
-        v.deserialize(ElementTree.XML('<variable name="foo"><l>hello world</l></variable>'))
+        v.deserialize(
+            ElementTree.XML('<variable name="foo"><l>hello world</l></variable>'))
         self.assertEqual(v.name, "foo")
         self.assertEqual("hello world", v.value().as_string())
         self.assertEqual(v.contents, Literal("hello world"))
@@ -345,33 +350,41 @@ class PyInterpreterTestCase(unittest.TestCase):
         sprite.variables.add(Variable("sprite var", Literal(222)))
 
         self.assertEqual(
-            [key for key in proj.variables.variables.keys() if not key.startswith("@")],
+            [key for key in proj.variables.variables.keys() if not key.startswith(
+                "@")],
             ['proj var'])
         self.assertEqual(None, proj.get_variable("no such variable"))
         self.assertNotEqual(None, proj.get_variable("proj var"))
         self.assertEqual(None, proj.get_variable("stage var"))
         self.assertEqual(None, proj.get_variable("sprite var"))
-        self.assertEqual(777, proj.get_variable("proj var").value().as_number())
+        self.assertEqual(
+            777, proj.get_variable("proj var").value().as_number())
 
         self.assertEqual(
-            [key for key in stage.variables.variables.keys() if not key.startswith("@")],
+            [key for key in stage.variables.variables.keys() if not key.startswith(
+                "@")],
             ['stage var'])
         self.assertEqual(None, stage.get_variable("no such variable"))
         self.assertNotEqual(None, stage.get_variable("proj var"))
         self.assertNotEqual(None, stage.get_variable("stage var"))
         self.assertEqual(None, stage.get_variable("sprite var"))
-        self.assertEqual(777, stage.get_variable("proj var").value().as_number())
-        self.assertEqual(555, stage.get_variable("stage var").value().as_number())
+        self.assertEqual(
+            777, stage.get_variable("proj var").value().as_number())
+        self.assertEqual(
+            555, stage.get_variable("stage var").value().as_number())
 
         self.assertEqual(
-            [key for key in sprite.variables.variables.keys() if not key.startswith("@")],
+            [key for key in sprite.variables.variables.keys() if not key.startswith(
+                "@")],
             ['sprite var'])
         self.assertEqual(None, sprite.get_variable("no such variable"))
         self.assertNotEqual(None, sprite.get_variable("proj var"))
         self.assertEqual(None, sprite.get_variable("stage var"))
         self.assertNotEqual(None, sprite.get_variable("sprite var"))
-        self.assertEqual(777, sprite.get_variable("proj var").value().as_number())
-        self.assertEqual(222, sprite.get_variable("sprite var").value().as_number())
+        self.assertEqual(
+            777, sprite.get_variable("proj var").value().as_number())
+        self.assertEqual(
+            222, sprite.get_variable("sprite var").value().as_number())
 
     def test_variable_repr(self):
         x = Variable("name", Literal("val"))
@@ -469,10 +482,11 @@ class PyInterpreterTestCase(unittest.TestCase):
 
         self.do_test_using_factory(xml, "costumes.xml")
 
-    def do_test_script(self, filename, pre_check={}, post_check={}, injection={}):
+    def do_test_script(
+            self, filename, pre_check={}, post_check={}, injection={}):
         "Lets you easily test the first script of the first sprite"
 
-        unused_loop = None  #event_loop.EventLoop()
+        unused_loop = None  # event_loop.EventLoop()
 
         tree = ElementTree.parse(filename)
         project = Project(unused_loop)
@@ -483,7 +497,8 @@ class PyInterpreterTestCase(unittest.TestCase):
 
         # Run the pre-check
         for variable_name, start_value in pre_check.items():
-            self.assertEqual(sprite.get_variable(variable_name).value(), start_value)
+            self.assertEqual(
+                sprite.get_variable(variable_name).value(), start_value)
 
         # Inject any values
         for variable_name, injected_value in injection.items():
@@ -494,11 +509,10 @@ class PyInterpreterTestCase(unittest.TestCase):
 
         # Run the post-check
         for variable_name, final_value in post_check.items():
-            self.assertEqual(sprite.get_variable(variable_name).value(), final_value)
-
+            self.assertEqual(
+                sprite.get_variable(variable_name).value(), final_value)
 
     def test_repeat_block(self):
-
         """Increment a counter five times in a loop.
 
         set count to 0
@@ -510,7 +524,6 @@ class PyInterpreterTestCase(unittest.TestCase):
         self.do_test_script("simple_repeat_loop.xml",
                             {"count": Literal(0)},
                             {"count": Literal(5)})
-
 
     def test_nested_repeat_block(self):
         """Increment a counter in a loop that is within a loop
@@ -563,17 +576,22 @@ class PyInterpreterTestCase(unittest.TestCase):
 
         filename = "if_test.xml"
 
-        self.do_test_script(filename,
-            {}, {"result": Literal("smile")}, {"feeling": Literal("happy")})
+        self.do_test_script(
+            filename, {}, {
+                "result": Literal("smile")}, {
+                "feeling": Literal("happy")})
 
-        self.do_test_script(filename,
-            {}, {"result": Literal("frown")}, {"feeling": Literal("sad")})
+        self.do_test_script(
+            filename, {}, {
+                "result": Literal("frown")}, {
+                "feeling": Literal("sad")})
 
-        self.do_test_script(filename,
-            {}, {"result": Literal("meh")}, {"feeling": Literal("whatever")})
+        self.do_test_script(
+            filename, {}, {
+                "result": Literal("meh")}, {
+                "feeling": Literal("whatever")})
 
 
 if __name__ == '__main__':
     clean_output_directories()
     unittest.main()
-    

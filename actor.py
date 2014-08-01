@@ -15,7 +15,8 @@ import media
 
 
 class BaseActor(object):
-    "Common things between Sprite and Stage"
+
+    """Common things between Sprite and Stage"""
 
     def __init__(self, project):
 
@@ -28,7 +29,7 @@ class BaseActor(object):
         self.scripts = []
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
         assert (elem.tag in ("stage", "sprite"))
 
         # children
@@ -56,7 +57,7 @@ class BaseActor(object):
                 event_loop.queue(new_script, self)
 
     def serialize_scripts(self):
-        "Returns a script node for use in serialization"
+        """Returns a script node for use in serialization"""
         scripts_node = Element("scripts")
         for item in self.scripts:
             scripts_node.append(item.serialize())
@@ -66,7 +67,7 @@ class BaseActor(object):
         return "%s %s" % (self.__class__.__name__, self.variables)
 
     def get_variable(self, name):
-        "Gets a variable by name; returns None if it does not exist"
+        """Gets a variable by name; returns None if it does not exist"""
         v = self.variables.get_variable(name)
         if v:
             return v
@@ -114,7 +115,8 @@ class BaseActor(object):
 
 
 class Sprite(BaseActor):
-    "Represents a Snap! Sprite"
+
+    """Represents a Snap! Sprite"""
 
     def __init__(self, project):
         super(Sprite, self).__init__(project=project)
@@ -145,7 +147,7 @@ class Sprite(BaseActor):
         self.create_new_speech_message = False
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
 
         assert (elem.tag == "sprite")
 
@@ -171,7 +173,7 @@ class Sprite(BaseActor):
         self.nest = elem.find("nest")
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
 
         variables_node = self.variables.serialize()
         scripts_node = self.serialize_scripts()
@@ -206,10 +208,12 @@ class Sprite(BaseActor):
         return sprite
 
     def __str__(self):
-        return "%s %r %s" % (self.__class__.__name__, self.name, self.variables)
+        return "%s %r %s" % (
+            self.__class__.__name__, self.name, self.variables)
 
     def say_or_think(self, message, is_thought):
-        if message != self.speech_message or is_thought != self.speech_is_thought:
+        if message != self.speech_message or \
+                is_thought != self.speech_is_thought:
             self.speech_message = message
             self.speech_is_thought = is_thought
             if len(self.speech_message) > 0:
@@ -229,10 +233,11 @@ class Sprite(BaseActor):
                     media_environment.create_speech_message(
                         self.speech_message, self.speech_is_thought)
                 self.create_new_speech_message = False
-            media_environment.draw_speech_message(self.speech_image, (x + 30, y + 30))
+            media_environment.draw_speech_message(
+                self.speech_image, (x + 30, y + 30))
 
     def radians_from_heading(self):
-        "Returns an angle representing the heading, in the range (0, 360)"
+        """Returns an angle representing the heading, in the range (0, 360)"""
         angle = (self.value_of_variable("@heading").as_number() - 90.0) % 360.0
         return math.radians(angle)
 
@@ -245,7 +250,8 @@ class Sprite(BaseActor):
 
 
 class Stage(BaseActor):
-    "Represents a Snap! Stage"
+
+    """Represents a Snap! Stage"""
 
     def __init__(self, project):
 
@@ -268,7 +274,7 @@ class Stage(BaseActor):
         self.sprites = []  # unique to stage
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
         assert (elem.tag == "stage")
 
         super(Stage, self).deserialize(elem)
@@ -302,7 +308,7 @@ class Stage(BaseActor):
                 self.sprites.append(child)
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
 
         # We have sprite objects and watcher nodes; make a tree of nodes
         sprites = Element("sprites")
@@ -344,7 +350,8 @@ class Stage(BaseActor):
 
 
 class Project:
-    "Represents a Snap! Project"
+
+    """Represents a Snap! Project"""
 
     def __init__(self, event_loop):
         self.event_loop = event_loop
@@ -365,7 +372,7 @@ class Project:
         self.variables = data.Variables()
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
 
         assert (elem.tag == "project")
 
@@ -385,7 +392,7 @@ class Project:
         self.variables.deserialize(elem.find("variables"))
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
 
         project = Element("project", name=self.name,
                           app=self.app, version=self.version)
@@ -397,11 +404,11 @@ class Project:
         return project
 
     def get_variable(self, name):
-        "Gets a named variable; returns None if it does not exist"
+        """Gets a named variable; returns None if it does not exist"""
         return self.variables.get_variable(name)
 
     def sprites_in_drawing_order(self):
-        "Returns sprites in the order they should be drawn, back to front"
+        """Returns sprites in the order they should be drawn, back to front"""
 
         # Sprites should have some sort of z-order parameter, but
         # I don't know what it is yet.

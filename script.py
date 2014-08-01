@@ -14,6 +14,7 @@ import ops
 
 
 class Block(object):
+
     """This is a code block, representing an instruction to execute"""
 
     def __init__(self):
@@ -23,7 +24,7 @@ class Block(object):
         self.var_name = None  # only set if this is a 'var' block
 
     def deserialize(self, elem):
-        "Load from an xml element tree"
+        """Load from an xml element tree"""
         assert (elem.tag == "block")  # or elem.tag == "custom-block")
         self.function_name = elem.get("s")
         if self.function_name is None:
@@ -36,7 +37,7 @@ class Block(object):
                           for child in elem]
 
     def serialize(self):
-        "Save out as an element tree"
+        """Save out as an element tree"""
         if self.var_name is None:
             # this is a standard block
             block = Element("block", s=self.function_name)
@@ -48,8 +49,9 @@ class Block(object):
         return block
 
     def is_hat_block(self):
-        "Is this a hat-shaped, script-triggering block?"
-        # appropriate function names include receiveGo, receiveKey, receiveBroadcast
+        """Is this a hat-shaped, script-triggering block?"""
+        # appropriate function names include receiveGo, receiveKey,
+        # receiveBroadcast
         return self.function_name.startswith("receive")
 
     def evaluate(self, target, script):
@@ -78,10 +80,12 @@ class Block(object):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
     def __str__(self):
-        return "%s(%s)" % (self.function_name, ", ".join([str(s) for s in self.arguments]))
+        return "%s(%s)" % (
+            self.function_name, ", ".join([str(s) for s in self.arguments]))
 
 
 class Script(object):
+
     "Represents a sequence of instructions"
 
     def __init__(self):
@@ -92,14 +96,14 @@ class Script(object):
         self.from_start()
 
     def from_start(self):
-        "Sets or re-sets the script to begin and the start"
+        """Sets or re-sets the script to begin and the start"""
         self.code_pos = 0
         self.subscript = None  # set by flow control blocks
         self.repeat = 0  # adjusted by flow control blocks
         return self
 
     def deserialize(self, elem):
-        "Loads this class from an element tree representation"
+        """Loads this class from an element tree representation"""
         assert (elem.tag == "script")
 
         # attributes
@@ -116,7 +120,7 @@ class Script(object):
             self.blocks.append(b)
 
     def serialize(self):
-        "Return an elementtree representing this object"
+        """Return an elementtree representing this object"""
 
         # We have sprite objects and watcher nodes; make a tree of nodes
         if self.x is None or self.y is None:
@@ -130,13 +134,15 @@ class Script(object):
         return script
 
     def top_block(self):
-        "Returns the first block in the script (which may be used to trigger the script)"
+        """Returns the first block in the script
+        (which may be used to trigger the script)"""
         if self.blocks and len(self.blocks) > 0:
             return self.blocks[0]
         return None
 
     def step(self, target):
-        "Execute a line of code; raises StopIteration when there is no more code"
+        """Execute a line of code; raises StopIteration
+        when there is no more code"""
 
         # Are we inside a nested script?
         if self.subscript:
@@ -160,11 +166,12 @@ class Script(object):
                 self.code_pos += 1
 
     def evaluate(self, target, script):
-        "Scripts (in arguments) evaluate to themselves.  [They can be run separately]"
+        """Scripts (in arguments) evaluate to themselves.
+        [They can be run separately]"""
         return self
 
     def run(self, target):
-        "Runs the code until it is done (if it ever finishes)"
+        """Runs the code until it is done (if it ever finishes)"""
         try:
             while True:
                 self.step(target)
@@ -173,7 +180,8 @@ class Script(object):
             pass
 
     def starts_on_trigger(self):
-        "After the script runs, should it be queued up to be triggered again?"
+        """After the script runs, should it be queued up
+        to be triggered again?"""
         tb = self.top_block()
         if tb:
             return tb.is_hat_block()
@@ -181,5 +189,3 @@ class Script(object):
 
     def __str__(self):
         return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
-
-		
