@@ -3,8 +3,20 @@
 import os.path
 import mimetypes
 
-from geventwebsocket.server import WebSocketServer
-from geventwebsocket.resource import Resource
+from collections import OrderedDict
+
+from geventwebsocket import WebSocketServer, WebSocketApplication, Resource
+
+class ClientConnection(WebSocketApplication):
+    def on_open(self):
+        print "Connection opened"
+
+    def on_message(self, message):
+        print "Received message: %s" % message
+        self.ws.send("Thanks for connecting")
+
+    def on_close(self):
+        print "Connection closed"
 
 
 def static_file_server(environ, start_response):
@@ -53,11 +65,13 @@ def static_file_server(environ, start_response):
 
 
 def run_web_servers(port):
-    resource = Resource({
-        # '^/wamp_example$': WampApplication,
-        r'.*': static_file_server
-    })
+    resource = Resource(
+        OrderedDict([
+            ('/ws', ClientConnection),
+            ('.*', static_file_server)
+        ])
+    )
 
-    server = WebSocketServer(("", port), resource, debug=True)
+    server = WebSocketServer(("", port), resource, debug=False)
     print "Now listening on port %d" % port
     server.serve_forever()

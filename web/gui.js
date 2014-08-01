@@ -385,6 +385,25 @@ IDE_Morph.prototype.openIn = function (world) {
     } else {
         interpretUrlAnchors.call(this);
     }
+
+    // Set up a websocket connection to the server
+    console.log("Creating websocket")
+    var ws = new WebSocket("ws://localhost:8000/ws");
+
+    ws.onopen = function (event) {
+        console.log("Opened websocket")
+        ws.send("Hello, world");
+    };
+    ws.onmessage = function (event) {
+        console.log("Received message: " + event.data)
+        alert(event.data);
+    };
+    ws.onclose = function (event) {
+        console.log("Websocket closing")
+    }
+    ws.onerror = function (event) {
+        console.log("Websocket error")
+    }
 };
 
 // IDE_Morph construction
