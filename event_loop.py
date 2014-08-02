@@ -5,6 +5,9 @@ import gevent.pool
 import gevent.lock
 
 import factory
+import server
+
+port = 8080
 
 
 def is_trigger_key(top_block, media_and_event):
@@ -31,6 +34,7 @@ class EventLoop(object):
         self.media_environment = media_environment
         # Get the script_lock before adding or removing scripts
         self.script_lock = gevent.lock.BoundedSemaphore(1)
+        self.clients = []
 
     def queue(self, script, sprite):
         """Queues up a script"""
@@ -41,6 +45,10 @@ class EventLoop(object):
 
     def run_forever(self):
         """Runs all the scripts in the project"""
+
+        # First, fire up the webserver
+        server.ClientConnection.event_loop = self
+        gevent.spawn(server.run_web_servers, port)
 
         # This is the main loop
         # It checks for events (from pygame)
@@ -114,5 +122,44 @@ class EventLoop(object):
         self.purge_all_scripts()
         self.project = factory.deserialize_file(filename, self)
         self.media_environment.setup_for_project(self.project)
-
         gevent.spawn(self.trigger_green_flag)
+
+    def load_project_from_xml(self, xml):
+        """Loads a file from xml"""
+        self.purge_all_scripts()
+        self.project = factory.deserialize_xml(xml, self)
+        self.media_environment.setup_for_project(self.project)
+        gevent.spawn(self.trigger_green_flag)
+
+    def client_connected(self, client):
+        self.clients.append(client)
+        print "Now serving %s clients; %s just connected" \
+              % (len(self.clients), client)
+        # Send the client a copy of the current world (if there is one)
+        if self.project:
+            message = "load_project %s" % factory.xml_for_object(self.project)
+            client.ws.send(message)
+
+    def client_disconnected(self, client):
+        self.clients.remove(client)
+        print "Now serving %s clients; %s just disconnected" \
+              % (len(self.clients), client)
+
+    def message_from_client(self, message, client):
+        split = message.find(" ")
+        if split == -1:
+            print "Unrecognized message: %s" % message
+        command = message[:split]
+
+        if command == "load_project":
+            xml = message[split + 1:]
+            self.load_project_from_xml(xml)
+            self.send_message_to_other_clients(message, client)
+        else:
+            print "Unrecognized command: %s" % command
+
+    def send_message_to_other_clients(self, message, source_client=None):
+        """Send a message to all web clients, except the source"""
+        for client in self.clients:
+            if client != source_client:
+                client.ws.send(message)

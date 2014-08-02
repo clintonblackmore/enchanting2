@@ -36,8 +36,12 @@ def deserialize_xml(xml, *args):
     """Take some XML and return an object for it"""
     return deserialize_value(ElementTree.XML(xml), *args)
 
+
 def deserialize_file(filename, *args):
     """Return the object represented by the data in the file"""
     return deserialize_value(ElementTree.parse(filename).getroot(), *args)
 
 
+def xml_for_object(object):
+    """Return the XML that represents this object"""
+    return ElementTree.tostring(object.serialize())

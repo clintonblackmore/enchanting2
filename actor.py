@@ -117,6 +117,7 @@ class BaseActor(object):
         for script in self.scripts:
             script.stop()
 
+
 class Sprite(BaseActor):
 
     """Represents a Snap! Sprite"""

@@ -388,22 +388,39 @@ IDE_Morph.prototype.openIn = function (world) {
 
     // Set up a websocket connection to the server
     console.log("Creating websocket")
-    var ws = new WebSocket("ws://localhost:8000/ws");
+    ws_url = "ws://" + document.URL.substring(7) + "ws"     // ex: ws://localhost:8080/ws
+    this.websocket = new WebSocket(ws_url);
 
-    ws.onopen = function (event) {
+    this.websocket.onopen = function (event) {
         console.log("Opened websocket")
-        ws.send("Hello, world");
     };
-    ws.onmessage = function (event) {
-        console.log("Received message: " + event.data)
-        alert(event.data);
+
+    this.websocket.onclose = function (event) {
+        console.log("Closed websocket")
     };
-    ws.onclose = function (event) {
-        console.log("Websocket closing")
-    }
-    ws.onerror = function (event) {
-        console.log("Websocket error")
-    }
+
+    this.websocket.onerror = function (event) {
+        console.log("Websocket error: " + event.data)
+    };
+
+    this.websocket.onmessage = function (event) {
+        split = event.data.indexOf(" ")
+        if (split == -1) {
+            console.log("Websocket received unknown message: " + event.data);
+            return;
+        }
+        command = event.data.substring(0, split)
+        console.log("Processing command: " + command);
+        switch (command) {
+            case "load_project":
+                xml = event.data.substring(split + 1);
+                myself.openProjectString(xml);
+                break;
+            default:
+                console.log("Unknown command: " + command);
+        }
+    };
+
 };
 
 // IDE_Morph construction

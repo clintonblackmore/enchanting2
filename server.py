@@ -7,16 +7,18 @@ from collections import OrderedDict
 
 from geventwebsocket import WebSocketServer, WebSocketApplication, Resource
 
+
 class ClientConnection(WebSocketApplication):
+    event_loop = None
+
     def on_open(self):
-        print "Connection opened"
+        ClientConnection.event_loop.client_connected(self)
 
     def on_message(self, message):
-        print "Received message: %s" % message
-        self.ws.send("Thanks for connecting")
+        ClientConnection.event_loop.message_from_client(message, self)
 
     def on_close(self):
-        print "Connection closed"
+        ClientConnection.event_loop.client_disconnected(self)
 
 
 def static_file_server(environ, start_response):

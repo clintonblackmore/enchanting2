@@ -40,8 +40,8 @@ class PyGameMediaEnvironment(object):
                       title="Enchanting 2", stage=None):
         """Sets up the display for the specified resolution.
         I've designed this so it can be called without any project at all"""
-        #if self.screen and self.width != width or self.height != height:
-            # We may need to deal with this case
+        # if self.screen and self.width != width or self.height != height:
+        #     We may need to deal with this case
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((self.width, self.height))
