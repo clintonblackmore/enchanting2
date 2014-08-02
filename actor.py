@@ -113,6 +113,9 @@ class BaseActor(object):
         if self.costumes:
             self.costume = self.costumes.index_for_next_costume(self.costume)
 
+    def stop_all_scripts(self):
+        for script in self.scripts:
+            script.stop()
 
 class Sprite(BaseActor):
 
@@ -407,13 +410,22 @@ class Project:
         """Gets a named variable; returns None if it does not exist"""
         return self.variables.get_variable(name)
 
-    def sprites_in_drawing_order(self):
+    def all_actors(self):
+        """Returns the stage and all sprites"""
+
+        all_actors = [self.stage]
+        all_actors.extend([sprite for sprite in self.stage.sprites
+                           if isinstance(sprite, BaseActor)])
+        return all_actors
+
+    def actors_in_drawing_order(self):
         """Returns sprites in the order they should be drawn, back to front"""
 
         # Sprites should have some sort of z-order parameter, but
         # I don't know what it is yet.
         # Most important is that the stage goes first.
-        all_actors = [self.stage]
-        all_actors.extend([sprite for sprite in self.stage.sprites
-                           if isinstance(sprite, BaseActor)])
-        return all_actors
+        return self.all_actors()
+
+    def stop_all_scripts(self):
+        for actor in self.all_actors():
+            actor.stop_all_scripts()

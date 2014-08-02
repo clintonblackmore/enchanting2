@@ -29,24 +29,37 @@ class PyGameMediaEnvironment(object):
         # Fonts
         self.speech_font = None
 
+        self.setup_display()
+
     def setup_for_project(self, project):
         """We have loaded a new project.  Adjust setup if necessary"""
-        self.width = project.stage.width
-        self.height = project.stage.height
+        stage = project.stage
+        self.setup_display(stage.width, stage.height, project.name, stage)
+
+    def setup_display(self, width=480, height=360,
+                      title="Enchanting 2", stage=None):
+        """Sets up the display for the specified resolution.
+        I've designed this so it can be called without any project at all"""
+        #if self.screen and self.width != width or self.height != height:
+            # We may need to deal with this case
+        self.width = width
+        self.height = height
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption(project.name)
+        pygame.display.set_caption(title)
         self.speech_font = pygame.font.Font(None, 36)
 
         # convert media
-        all_actors = [project.stage]
-        all_actors.extend([sprite for sprite in project.stage.sprites
-                           if isinstance(sprite, actor.BaseActor)])
-        for sprite in all_actors:
-            sprite.convert_art(self)
+        if stage:
+            all_actors = [stage]
+            all_actors.extend([sprite for sprite in stage.sprites
+                               if isinstance(sprite, actor.BaseActor)])
+            for sprite in all_actors:
+                sprite.convert_art(self)
 
     def draw(self, project):
-        for sprite in project.sprites_in_drawing_order():
-            sprite.draw(self)
+        if project:
+            for actor in project.actors_in_drawing_order():
+                actor.draw(self)
         self.finished_frame()
 
     def finished_frame(self):

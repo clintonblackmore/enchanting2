@@ -100,6 +100,7 @@ class Script(object):
         self.code_pos = 0
         self.subscript = None  # set by flow control blocks
         self.repeat = 0  # adjusted by flow control blocks
+        self.stopped = False
         return self
 
     def deserialize(self, elem):
@@ -172,12 +173,17 @@ class Script(object):
 
     def run(self, target):
         """Runs the code until it is done (if it ever finishes)"""
+        self.stopped = False
         try:
-            while True:
+            while not self.stopped:
                 self.step(target)
                 gevent.sleep(0.01)
         except StopIteration:
             pass
+
+    def stop(self):
+        "Call this to stop a script (such as when the stop sign is pressed)"
+        self.stopped = True
 
     def starts_on_trigger(self):
         """After the script runs, should it be queued up
