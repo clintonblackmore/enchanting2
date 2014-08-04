@@ -38,9 +38,9 @@ def reportRound(target_actor, parent_script, args):
 
 
 # def reportMonadic(target_actor, parent_script, args):
-#	"This one does all the functions, like sqrt, etc"
-#	raise NotImplementedError
-#	return None
+#    "This one does all the functions, like sqrt, etc"
+#    raise NotImplementedError
+#    return None
 
 def reportRandom(target_actor, parent_script, args):
     min, max = (args[0].as_number(), args[1].as_number())

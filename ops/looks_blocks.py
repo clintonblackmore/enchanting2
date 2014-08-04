@@ -48,4 +48,21 @@ def doWearNextCostume(target_actor, parent_script, args):
 def getCostumeIdx(target_actor, parent_script, args):
     return data.Literal(target_actor.costume)
 
-    # to do -- lots!
+
+def changeScale(target_actor, parent_script, args):
+    delta_scale = args[0].as_number() / 100
+    target_actor.increment_variable("@scale", delta_scale)
+    return None
+
+
+def setScale(target_actor, parent_script, args):
+    scale = args[0].as_number() / 100
+    target_actor.set_variable("@scale", data.Literal(scale))
+    return None
+
+
+def getScale(target_actor, parent_script, args):
+    scale = target_actor.value_of_variable("@scale")
+    return data.Literal(scale.as_number() * 100)
+
+# to do -- lots!

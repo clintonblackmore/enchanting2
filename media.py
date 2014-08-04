@@ -286,14 +286,15 @@ class Costumes(object):
         # to do:
         # - draw turtles
         # - take rotation center (and pen tip) into account
+        # - take rotation mode (none, left/right, rotate) into account
 
         index -= 1  # convert 1-based index to standard 0-based index
 
         cached_index, cached_heading, cached_scale = self.cached_settings
         invalidate = self.cached_image is None or \
-                     index != cached_index or \
-                     math.fabs(scale - cached_scale) > 0.001 or \
-                     math.fabs(heading - cached_heading) > 1
+            index != cached_index or \
+            math.fabs(scale - cached_scale) > 0.001 or \
+            math.fabs(heading - cached_heading) > 1
         if invalidate:
             # time to redraw the image
             self.cached_settings = (index, heading, scale)
@@ -304,13 +305,13 @@ class Costumes(object):
 
             if image:
                 angle = 90 - heading
-                self.cached_image = pygame.transform.rotozoom(image, angle, scale)
+                self.cached_image = pygame.transform.rotozoom(
+                    image, angle, scale)
                 self.cached_image.convert()
             else:
                 "To do instead -- draw and cache a turtle"
                 self.cached_image = None
         return self.cached_image
-
 
     def draw(self, media_env, index, x_pos, y_pos, heading, scale):
         "Draws the costume"

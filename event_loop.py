@@ -2,7 +2,12 @@
 
 import gevent
 import gevent.pool
-import gevent.lock
+
+try:
+    from gevent.lock import BoundedSemaphore
+except:
+    from gevent.coros import BoundedSemaphore
+
 
 import factory
 import server
@@ -33,7 +38,7 @@ class EventLoop(object):
         self.project = None
         self.media_environment = media_environment
         # Get the script_lock before adding or removing scripts
-        self.script_lock = gevent.lock.BoundedSemaphore(1)
+        self.script_lock = BoundedSemaphore(1)
         self.clients = []
 
     def queue(self, script, sprite):
@@ -122,14 +127,14 @@ class EventLoop(object):
         self.purge_all_scripts()
         self.project = factory.deserialize_file(filename, self)
         self.media_environment.setup_for_project(self.project)
-        #gevent.spawn(self.trigger_green_flag)
+        # gevent.spawn(self.trigger_green_flag)
 
     def load_project_from_xml(self, xml):
         """Loads a file from xml"""
         self.purge_all_scripts()
         self.project = factory.deserialize_xml(xml, self)
         self.media_environment.setup_for_project(self.project)
-        #gevent.spawn(self.trigger_green_flag)
+        # gevent.spawn(self.trigger_green_flag)
 
     def client_connected(self, client):
         self.clients.append(client)
