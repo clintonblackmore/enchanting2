@@ -122,14 +122,14 @@ class EventLoop(object):
         self.purge_all_scripts()
         self.project = factory.deserialize_file(filename, self)
         self.media_environment.setup_for_project(self.project)
-        gevent.spawn(self.trigger_green_flag)
+        #gevent.spawn(self.trigger_green_flag)
 
     def load_project_from_xml(self, xml):
         """Loads a file from xml"""
         self.purge_all_scripts()
         self.project = factory.deserialize_xml(xml, self)
         self.media_environment.setup_for_project(self.project)
-        gevent.spawn(self.trigger_green_flag)
+        #gevent.spawn(self.trigger_green_flag)
 
     def client_connected(self, client):
         self.clients.append(client)
@@ -155,6 +155,10 @@ class EventLoop(object):
             xml = message[split + 1:]
             self.load_project_from_xml(xml)
             self.send_message_to_other_clients(message, client)
+        elif command == "green_flag_press":
+            self.trigger_green_flag()
+        elif command == "stop_button_press":
+            self.stop_all_scripts()
         else:
             print "Unrecognized command: %s" % command
 

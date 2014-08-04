@@ -491,6 +491,7 @@ IDE_Morph.prototype.createControlBar = function () {
         stopButton,
         pauseButton,
         startButton,
+        uploadButton,
         projectButton,
         settingsButton,
         stageSizeButton,
@@ -657,6 +658,31 @@ IDE_Morph.prototype.createControlBar = function () {
     this.controlBar.add(startButton);
     this.controlBar.startButton = startButton;
 
+
+    // hacked upload + sync button
+    button = new PushButtonMorph(
+        this,
+        'pushProject',
+        new SymbolMorph('cloud', 14)
+    );
+    button.corner = 12;
+    button.color = colors[0];
+    button.highlightColor = colors[1];
+    button.pressColor = colors[2];
+    button.labelMinExtent = new Point(36, 18);
+    button.padding = 0;
+    button.labelShadowOffset = new Point(-1, -1);
+    button.labelShadowColor = colors[1];
+    button.labelColor = new Color(0, 0, 255);
+    button.contrast = this.buttonContrast;
+    button.drawNew();
+    // button.hint = 'start green\nflag scripts';
+    button.fixLayout();
+    uploadButton = button;
+    this.controlBar.add(uploadButton);
+    this.controlBar.startButton = uploadButton;
+
+
     // projectButton
     button = new PushButtonMorph(
         this,
@@ -730,7 +756,7 @@ IDE_Morph.prototype.createControlBar = function () {
 
     this.controlBar.fixLayout = function () {
         x = this.right() - padding;
-        [stopButton, pauseButton, startButton].forEach(
+        [stopButton, pauseButton, startButton, uploadButton].forEach(
             function (button) {
                 button.setCenter(myself.controlBar.center());
                 button.setRight(x);
@@ -1641,6 +1667,15 @@ IDE_Morph.prototype.pressStart = function () {
         this.toggleFastTracking();
     } else {
         this.runScripts();
+        if (this.websocket) {
+            this.websocket.send("green_flag_press ");
+        }
+    }
+};
+
+IDE_Morph.prototype.pushProject = function () {
+    if (this.websocket) {
+        this.websocket.send("load_project " + this.serializer.serialize(this.stage));
     }
 };
 
@@ -1698,6 +1733,9 @@ IDE_Morph.prototype.isPaused = function () {
 
 IDE_Morph.prototype.stopAllScripts = function () {
     this.stage.fireStopAllEvent();
+    if (this.websocket) {
+        this.websocket.send("stop_sign_press ");
+    }
 };
 
 IDE_Morph.prototype.selectSprite = function (sprite) {
