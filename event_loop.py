@@ -157,7 +157,7 @@ class EventLoop(object):
             self.send_message_to_other_clients(message, client)
         elif command == "green_flag_press":
             self.trigger_green_flag()
-        elif command == "stop_button_press":
+        elif command == "stop_sign_press":
             self.stop_all_scripts()
         else:
             print "Unrecognized command: %s" % command

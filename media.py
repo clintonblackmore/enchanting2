@@ -10,6 +10,7 @@ from xml.etree.cElementTree import Element
 import base64
 from cStringIO import StringIO
 import sys
+import math
 
 import pygame
 
@@ -221,6 +222,8 @@ class Costumes(object):
 
     def __init__(self):
         self.list_node = None
+        self.cached_image = None
+        self.cached_settings = (0, 0, 0)
 
     def deserialize(self, elem):
         """Loads this class from an element tree representation"""
@@ -277,22 +280,48 @@ class Costumes(object):
             return 1
         return current_index + 1
 
+    def image(self, index, heading, scale):
+        """Returns the image, scaled and rotated, suitable for drawing"""
+
+        # to do:
+        # - draw turtles
+        # - take rotation center (and pen tip) into account
+
+        index -= 1  # convert 1-based index to standard 0-based index
+
+        cached_index, cached_heading, cached_scale = self.cached_settings
+        invalidate = self.cached_image is None or \
+                     index != cached_index or \
+                     math.fabs(scale - cached_scale) > 0.001 or \
+                     math.fabs(heading - cached_heading) > 1
+        if invalidate:
+            # time to redraw the image
+            self.cached_settings = (index, heading, scale)
+
+            image = None
+            if self.list_node and self.list_node.index_in_range(index):
+                image = self.list_node.item_at_index(index).image
+
+            if image:
+                angle = 90 - heading
+                self.cached_image = pygame.transform.rotozoom(image, angle, scale)
+                self.cached_image.convert()
+            else:
+                "To do instead -- draw and cache a turtle"
+                self.cached_image = None
+        return self.cached_image
+
+
     def draw(self, media_env, index, x_pos, y_pos, heading, scale):
         "Draws the costume"
 
-        # Look up the image at this index
-        index -= 1  # convert 1-based index to standard 0-based index
-        # (Note that there may not be one -- in which case, we draw a 'turtle')
-        image = None
-
-        if self.list_node and self.list_node.index_in_range(index):
-            image = self.list_node.item_at_index(index).image
-
+        image = self.image(index, heading, scale)
         pos = media_env.stage_pos_to_nearest_screen_pos((x_pos, y_pos))
 
         if not image:
             # No image -- draw a turtle
             # For now, draw a circle
+            # (to do -- cache a proper turtle image)
             color = (255, 120, 0)
             radius = 15
             pygame.draw.circle(media_env.screen, color, pos, radius)
