@@ -51,11 +51,8 @@ class PyGameMediaEnvironment(object):
 
         # convert media
         if stage:
-            all_actors = [stage]
-            all_actors.extend([sprite for sprite in stage.sprites
-                               if isinstance(sprite, actor.BaseActor)])
-            for sprite in all_actors:
-                sprite.convert_art(self)
+            # Convert the stage -- sprites are scaled, rotated, converted and cached
+            stage.convert_art(self)
 
     def draw(self, project):
         if project:
@@ -239,6 +236,8 @@ class Costumes(object):
         return costumes_node
 
     def convert_art(self, media_env):
+        # It is unclear if we should do this for anything but the stage
+        # as the sprite images as later rotated, scaled, cached, and then converted
         if self.list_node:
             for costume in self.list_node.list:
                 costume.image = costume.image.convert_alpha()
@@ -307,7 +306,7 @@ class Costumes(object):
                 angle = 90 - heading
                 self.cached_image = pygame.transform.rotozoom(
                     image, angle, scale)
-                self.cached_image.convert()
+                self.cached_image.convert_alpha()
             else:
                 "To do instead -- draw and cache a turtle"
                 self.cached_image = None

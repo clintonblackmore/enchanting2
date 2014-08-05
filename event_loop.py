@@ -6,8 +6,8 @@ import gevent.pool
 try:
     from gevent.lock import BoundedSemaphore
 except:
-    from gevent.coros import BoundedSemaphore
-
+    print "Enchanting2 requires gevent v1.0 or newer"
+    raise
 
 import factory
 import server
