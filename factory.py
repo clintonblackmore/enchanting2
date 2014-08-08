@@ -12,17 +12,20 @@ def deserialize_value(element, *args):
     """Get an object representing this element,
     be it a literal, list or what-not"""
 
-    class_map = {"l": data.Literal,
-                 "bool": data.Literal,
-                 "color": data.Color,
-                 "comment": data.Comment,
-                 "list": data.List,
-                 "block": script.Block,
-                 "script": script.Script,
-                 "costume": media.Costume,
-                 "costumes": media.Costumes,
-                 "project": actor.Project
-                 }
+    class_map = {
+        "block-definition": script.BlockDefinition,
+        "block": script.Block,
+        "blocks": script.Blocks,
+        "bool": data.Literal,
+        "color": data.Color,
+        "comment": data.Comment,
+        "costume": media.Costume,
+        "costumes": media.Costumes,
+        "l": data.Literal,
+        "list": data.List,
+        "project": actor.Project,
+        "script": script.Script,
+    }
 
     # if element.tag == "list":
     #    ElementTree.dump(element)

@@ -12,6 +12,23 @@ import math
 import data
 import script
 import media
+import factory
+
+
+# Helper functions
+
+def get_blocks(elem):
+    """Returns the list of block definitions, if it is defined."""
+    blocks_node = elem.find("blocks")
+    if blocks_node is not None:
+        return factory.deserialize_value(blocks_node)
+    return None
+
+def get_blocks_node(blocks):
+    """Returns the node that represents the blocks, or none"""
+    if blocks is None:
+        return None
+    return blocks.serialize()
 
 
 class BaseActor(object):
@@ -42,7 +59,7 @@ class BaseActor(object):
 
         self.sounds = elem.find("sounds")
         self.variables.deserialize(elem.find("variables"))
-        self.blocks = elem.find("blocks")
+        self.blocks = get_blocks(elem)
         self.scripts = []
 
         event_loop = None
@@ -181,6 +198,7 @@ class Sprite(BaseActor):
 
         variables_node = self.variables.serialize()
         scripts_node = self.serialize_scripts()
+        blocks_node = get_blocks_node(self.blocks)
 
         if self.costumes:
             costumes_node = self.costumes.serialize()
@@ -206,7 +224,7 @@ class Sprite(BaseActor):
                          id=data.number_to_string(self.id))
 
         for child in (self.nest, costumes_node, self.sounds,
-                      variables_node, self.blocks, scripts_node):
+                      variables_node, blocks_node, scripts_node):
             if child is not None:
                 sprite.append(child)
         return sprite
@@ -325,6 +343,8 @@ class Stage(BaseActor):
 
         variables_node = self.variables.serialize()
         scripts_node = self.serialize_scripts()
+        blocks_node = get_blocks_node(self.blocks)
+
 
         if self.costumes:
             costumes_node = self.costumes.serialize()
@@ -344,8 +364,9 @@ class Stage(BaseActor):
                         id=data.number_to_string(self.id))
 
         for child in (self.pentrails, costumes_node, self.sounds,
-                      variables_node, self.blocks, scripts_node, sprites):
-            stage.append(child)
+                      variables_node, blocks_node, scripts_node, sprites):
+            if child is not None:
+                stage.append(child)
         return stage
 
     def draw(self, media_environment):
@@ -392,7 +413,7 @@ class Project:
         self.hidden = elem.find("hidden")
         self.headers = elem.find("headers")
         self.code = elem.find("code")
-        self.blocks = elem.find("blocks")
+        self.blocks = get_blocks(elem)
         self.variables.deserialize(elem.find("variables"))
 
     def serialize(self):
@@ -402,9 +423,10 @@ class Project:
                           app=self.app, version=self.version)
 
         for child in (self.notes, self.thumbnail, self.stage.serialize(),
-                      self.hidden, self.headers, self.code, self.blocks,
-                      self.variables.serialize()):
-            project.append(child)
+                      self.hidden, self.headers, self.code,
+                      get_blocks_node(self.blocks), self.variables.serialize()):
+            if child is not None:
+                project.append(child)
         return project
 
     def get_variable(self, name):

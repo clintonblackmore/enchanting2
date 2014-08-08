@@ -2,6 +2,8 @@
 
  block - a block is an executable statement
  script - a collection of blocks to execute
+ block-definition - defines a user-created block
+ blocks - a collection of block definitions
 """
 
 from xml.etree.cElementTree import Element
@@ -195,3 +197,70 @@ class Script(object):
 
     def __str__(self):
         return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
+
+
+class BlockDefinition(object):
+    """This is a definition of a custom block"""
+
+    def __init__(self):
+
+        # Properties
+        self.category = None        # Which category does this block belong in? "lists", "control", "operators", etc.
+        self.function_name = None   # What is the function's name (or 'selector')?
+        self.type = None            # What type is it? "reporter", "command", or "predicate"?
+
+        # Child elements
+        # 'header' and 'code' are empty in all the examples I've looked at
+        self.header = None
+        self.code = None
+        self.inputs = None
+        self.script = Script()
+
+    def deserialize(self, elem):
+        """Load from an xml element tree"""
+        assert (elem.tag == "block-definition")
+
+        # Properties
+        self.function_name = elem.get("s")
+        self.category = elem.get("category")
+        self.type = elem.get("type")
+
+        # Children
+        self.header = elem.find("header")
+        self.code = elem.find("code")
+        self.inputs = elem.find("inputs")
+        self.script.deserialize(elem.find("script"))
+
+
+    def serialize(self):
+        """Save out as an element tree"""
+        definition = Element("block-definition",
+                             s=self.function_name,
+                             category=self.category,
+                             type=self.type)
+
+        for child in (self.header, self.code, self.inputs, self.script.serialize()):
+            if child is not None:
+                definition.append(child)
+
+        return definition
+
+
+class Blocks(object):
+    """A list of block definitions"""
+
+    def __init__(self):
+        self.definitions = []
+
+    def deserialize(self, elem):
+        """Load from an xml element tree"""
+        assert (elem.tag == "blocks")
+        for child in elem:
+            self.definitions.append(factory.deserialize_value(child))
+
+    def serialize(self):
+        """Save out as an element tree"""
+        blocks_node = Element("blocks")
+        for definition in self.definitions:
+            blocks_node.append(definition.serialize())
+        return blocks_node
