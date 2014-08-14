@@ -83,39 +83,36 @@ class BaseActor(object):
     def __str__(self):
         return "%s %s" % (self.__class__.__name__, self.variables)
 
-    def get_variable(self, name):
-        """Gets a variable by name; returns None if it does not exist"""
-        v = self.variables.get_variable(name)
-        if v:
-            return v
-        if self.project:
-            return self.project.get_variable(name)
-        return None
+    # Note: variable functions have been moved to the 'scripts' class
+    # These have been renamed to make it clear they are for properties,
+    # (variables used internally by the sprite, like "@x" and "@y"),
+    # and should not be used when a real variable is called for.
 
-    def value_of_variable(self, name):
-        v = self.get_variable(name)
+    def get_property(self, name):
+        """Gets a property by name; returns None if it does not exist.
+
+        Note that it does not call up the chain for global variables --
+        properties belong directly to the Sprite"""
+        return self.variables.get_variable(name)
+
+    def value_of_property(self, name):
+        v = self.get_property(name)
         if v:
             result = v.value()
             if result:
                 return result
         return data.Literal(None)
 
-    def set_variable(self, name, value):
-        v = self.get_variable(name)
+    def set_property(self, name, value):
+        v = self.get_property(name)
         if v:
             v.set(value)
         return None
 
-    def increment_variable(self, name, increment):
-        v = self.get_variable(name)
+    def increment_property(self, name, increment):
+        v = self.get_property(name)
         if v:
             v.set(data.Literal(v.value().as_number() + increment))
-        return None
-
-    def show_variable(self, name, visible):
-        v = target.get_variable(name)
-        if v:
-            v.show(True)
         return None
 
     def convert_art(self, media_env):
@@ -134,6 +131,9 @@ class BaseActor(object):
         for script in self.scripts:
             script.stop()
 
+    def find_block_definition(self, function_name):
+        bd = self.blocks.find_block_definition(function_name)
+        return bd or self.project.find_block_definition(function_name)
 
 class Sprite(BaseActor):
 
@@ -178,10 +178,10 @@ class Sprite(BaseActor):
         self.name = elem.get("name")
         self.idx = int(elem.get("idx"))
 
-        self.set_variable("@x", data.Literal(float(elem.get("x"))))
-        self.set_variable("@y", data.Literal(float(elem.get("y"))))
-        self.set_variable("@heading", data.Literal(float(elem.get("heading"))))
-        self.set_variable("@scale", data.Literal(float(elem.get("scale"))))
+        self.set_property("@x", data.Literal(float(elem.get("x"))))
+        self.set_property("@y", data.Literal(float(elem.get("y"))))
+        self.set_property("@heading", data.Literal(float(elem.get("heading"))))
+        self.set_property("@scale", data.Literal(float(elem.get("scale"))))
 
         self.rotation = float(elem.get("rotation"))
         self.draggable = data.bool_from_string(elem.get("draggable"))
@@ -205,17 +205,17 @@ class Sprite(BaseActor):
         else:
             costumes_node = None
 
-        x = self.value_of_variable("@x").as_string()
+        x = self.value_of_property("@x").as_string()
 
         sprite = Element("sprite",
                          name=self.name,
                          idx=data.number_to_string(self.idx),
                          x=data.number_to_string(
-                             self.value_of_variable("@x").as_number()),
-                         y=self.value_of_variable("@y").as_string(),
+                             self.value_of_property("@x").as_number()),
+                         y=self.value_of_property("@y").as_string(),
                          heading=data.number_to_string(
-                             self.value_of_variable("@heading").as_number()),
-                         scale=self.value_of_variable("@scale").as_string(),
+                             self.value_of_property("@heading").as_number()),
+                         scale=self.value_of_property("@scale").as_string(),
                          rotation=data.number_to_string(self.rotation),
                          draggable=data.bool_to_string(self.draggable),
                          costume=data.number_to_string(self.costume),
@@ -242,13 +242,13 @@ class Sprite(BaseActor):
                 self.create_new_speech_message = True
 
     def draw(self, media_environment):
-        x = self.value_of_variable("@x").as_number()
-        y = self.value_of_variable("@y").as_number()
+        x = self.value_of_property("@x").as_number()
+        y = self.value_of_property("@y").as_number()
         if self.costumes:
             self.costumes.draw(media_environment,
                                self.costume, x, y,
-                               self.value_of_variable("@heading").as_number(),
-                               self.value_of_variable("@scale").as_number())
+                               self.value_of_property("@heading").as_number(),
+                               self.value_of_property("@scale").as_number())
         if len(self.speech_message) > 0:
             if self.create_new_speech_message:
                 self.speech_image = \
@@ -260,15 +260,15 @@ class Sprite(BaseActor):
 
     def radians_from_heading(self):
         """Returns an angle representing the heading, in the range (0, 360)"""
-        angle = (self.value_of_variable("@heading").as_number() - 90.0) % 360.0
+        angle = (self.value_of_property("@heading").as_number() - 90.0) % 360.0
         return math.radians(angle)
 
     def move_forward(self, distance):
         radians = self.radians_from_heading()
         dX = math.cos(radians) * distance
         dY = -math.sin(radians) * distance
-        self.increment_variable("@x", dX)
-        self.increment_variable("@y", dY)
+        self.increment_property("@x", dX)
+        self.increment_property("@y", dY)
 
 
 class Stage(BaseActor):
@@ -432,6 +432,9 @@ class Project:
     def get_variable(self, name):
         """Gets a named variable; returns None if it does not exist"""
         return self.variables.get_variable(name)
+
+    def find_block_definition(self, function_name):
+        return self.blocks.find_block_definition(function_name)
 
     def all_actors(self):
         """Returns the stage and all sprites"""

@@ -41,7 +41,7 @@ def doRepeat(target_actor, parent_script, args):
         parent_script.repeat -= 1
 
     if parent_script.repeat >= 1:
-        parent_script.subscript = script.from_start()
+        parent_script.activate_subscript(script)
     else:
         parent_script.repeat = 0
     return data.Literal(parent_script.repeat)
@@ -50,26 +50,31 @@ def doRepeat(target_actor, parent_script, args):
 def doForever(target_actor, parent_script, args):
     script = args[0]
     parent_script.repeat = True
-    parent_script.subscript = script.from_start()
+    parent_script.activate_subscript(script)
     return None
 
 
 def doIf(target_actor, parent_script, args):
     condition, true_block = args
     if condition.evaluate(target_actor, parent_script).as_bool():
-        parent_script.subscript = true_block.from_start()
+        parent_script.activate_subscript(true_block)
 
 
 def doIfElse(target_actor, parent_script, args):
     condition, true_block, false_block = args
     if condition.evaluate(target_actor, parent_script).as_bool():
-        parent_script.subscript = true_block.from_start()
+        parent_script.activate_subscript(true_block)
     else:
-        parent_script.subscript = false_block.from_start()
+        parent_script.activate_subscript(false_block)
 
 
 def doBroadcast(target_actor, parent_script, args):
     message = args[0].as_string()
     target_actor.project.event_loop.broadcast_message(message)
 
-    # to do -- lots!
+
+def doReport(target_actor, parent_script, args):
+    result = args[0]
+    raise StopIteration(result)
+
+# to do -- lots!

@@ -14,26 +14,59 @@ import data
 import factory
 import ops
 
+def terse_debug_id(obj):
+    """Returns a terse ID for the object for debugging purposes"""
+    return hex(id(obj)).upper()[-5:-1]
+
+def debug_name_for_object(obj):
+    if obj.__class__.__name__ == "Script":
+        return obj.debug_name()
+    else:
+        return "~%s<%s>" % (obj.__class__.__name__, terse_debug_id(obj))
+
+class BlockType(object):
+    """A simple enum to represent the type of a block"""
+    unknown, regular, custom = range(0, 3)
+    name_list = ["", "block", "custom-block"]
+
+    @staticmethod
+    def block_type_from_name(name):
+        return BlockType.name_list.index(name)
+
+    @staticmethod
+    def block_type_name_from_value(value):
+        return BlockType.name_list[value]
 
 class Block(object):
 
     """This is a code block, representing an instruction to execute"""
+
 
     def __init__(self):
         self.function = None  # used to actually call the function
         self.function_name = ""  # the original, textual name of the function
         self.arguments = []
         self.var_name = None  # only set if this is a 'var' block
+        self.type = BlockType.unknown
 
     def deserialize(self, elem):
         """Load from an xml element tree"""
-        assert (elem.tag == "block")  # or elem.tag == "custom-block")
+
+        # What kind of block are we?
+        self.type = BlockType.block_type_from_name(elem.tag)
+        assert (self.type != BlockType.unknown)
+
+        # Get the function name and look up the function
         self.function_name = elem.get("s")
         if self.function_name is None:
             # there is no function name; this must be a var block
             self.var_name = elem.get("var")
             self.function_name = "var"
-        self.function = ops.bind_to_function(self.function_name)
+        if self.type == BlockType.regular:
+            self.function = ops.bind_to_function(self.function_name)
+        else:
+            # Custom functions are defined after they are used in the XML
+            self.function = None
 
         self.arguments = [factory.deserialize_value(child)
                           for child in elem]
@@ -41,10 +74,12 @@ class Block(object):
     def serialize(self):
         """Save out as an element tree"""
         if self.var_name is None:
-            # this is a standard block
-            block = Element("block", s=self.function_name)
+            # this is a standard block, not a variable block
+            block = Element(
+                BlockType.block_type_name_from_value(self.type),
+                s=self.function_name)
         else:
-            # this is a var block
+            # this is a var block (which is always a 'block', never a 'custom-block')
             block = Element("block", var=self.var_name)
         for arg in self.arguments:
             block.append(arg.serialize())
@@ -54,7 +89,7 @@ class Block(object):
         """Is this a hat-shaped, script-triggering block?"""
         # appropriate function names include receiveGo, receiveKey,
         # receiveBroadcast
-        return self.function_name.startswith("receive")
+        return self.type is BlockType.regular and self.function_name.startswith("receive")
 
     def evaluate(self, target, script):
         # evaluate each of the arguments
@@ -65,6 +100,12 @@ class Block(object):
             # if not isinstance(arg, (data.Comment, Script))]
         else:
             args = self.var_name
+
+        if self.function is None and self.type is BlockType.custom:
+            # The definitions have been loaded -- what is this function?
+            bd = target.find_block_definition(self.function_name)
+            if bd is not None:
+                self.function = bd.run
 
         # now, run this function
         if self.function is not None:
@@ -95,7 +136,9 @@ class Script(object):
         self.x = None
         self.y = None
         self.blocks = []
+        self.parent_script = None
         self.from_start()
+        print "Init: " + self.debug_name()
 
     def from_start(self):
         """Sets or re-sets the script to begin and the start"""
@@ -103,7 +146,24 @@ class Script(object):
         self.subscript = None  # set by flow control blocks
         self.repeat = 0  # adjusted by flow control blocks
         self.stopped = False
+        self.variables = data.Variables()
+        print "frst: " + self.debug_name()
         return self
+
+    def parallel_copy(self):
+        """Clone the script -- all the flow control information is copied, but the code is left the same.
+
+        Especially for custom blocks, the same script may run more than once concurrently.
+        It needs to have its own equivalent to a call stack and heap, but the code itself
+        remains the same.  To achieve that end, we point at the existing list of blocks,
+        but we create a new copy of the code position, etc."""
+        clone = Script()
+        clone.blocks = self.blocks
+        clone.x, clone.y = self.x, self.y
+        clone.parent_script = self.parent_script
+        clone.from_start()
+        print "||cp: %s <- %s" % (clone.debug_name(), self.debug_name())
+        return clone
 
     def deserialize(self, elem):
         """Loads this class from an element tree representation"""
@@ -151,18 +211,21 @@ class Script(object):
         if self.subscript:
             # step the script until it is done
             try:
-                # print "(sub) ",
+                print "(sub) ",
                 self.subscript.step(target)
-            except StopIteration:
-                # print "(exit)"
+            except StopIteration as e:
+                print "(exit)"
                 self.subscript = None
+                result = e.args[0]
+                if result is not None:
+                    raise e
         else:
             if self.code_pos < len(self.blocks):
                 current_block = self.blocks[self.code_pos]
             else:
-                raise StopIteration
+                raise StopIteration(None)
 
-                # print current_block,
+            print "%s: %s" % (debug_name_for_object(self), current_block)
             current_block.evaluate(target, self)
             # print "(repeat %s)" % self.repeat
             if not self.repeat:
@@ -180,12 +243,23 @@ class Script(object):
             while not self.stopped:
                 self.step(target)
                 gevent.sleep(0.01)
-        except StopIteration:
-            pass
+        except StopIteration as e:
+            # The StopIteration's parameter is the return value
+            # It is typically None, but if a 'report' block
+            # was used, we'll have a value
+            result = e.args[0]
+            return result
 
     def stop(self):
         "Call this to stop a script (such as when the stop sign is pressed)"
         self.stopped = True
+
+    def activate_subscript(self, subscript):
+        """Lets you run a nested script (like a 'repeat' or 'if' block)"""
+        print "Activating subscript: " + subscript.debug_name()
+        self.subscript = subscript.parallel_copy()
+        self.subscript.parent_script = self
+        print "Activated subscript: " + self.subscript.debug_name()
 
     def starts_on_trigger(self):
         """After the script runs, should it be queued up
@@ -198,53 +272,271 @@ class Script(object):
     def __str__(self):
         return "Script <%s>" % ", ".join([str(s) for s in self.blocks])
 
+    def debug_name(self):
+        """Outputs a name for this object, suitable for debugging"""
+        self_and_parents = []
+        script = self
+        while script:
+            part_name = terse_debug_id(script)
+            self_and_parents.append(part_name)
+            script = script.parent_script
+
+            assert(len(self_and_parents) < 200) # infinite loop
+
+        self_and_parents.reverse()
+        return "Script<%s>" % ".".join(self_and_parents)
+
+    # Code that deals with variables
+    def get_variable(self, actor, name):
+        """Returns the named variable or None.
+        Searched script variables, sprite variables,
+        and then project variables in turn."""
+
+        script = self
+        while script:
+            ret = script.variables.get_variable(name)
+            if ret:
+                return ret
+            script = script.parent_script
+
+        ret = actor.variables.get_variable(name)
+        if ret:
+            return ret
+
+        ret = actor.project.variables.get_variable(name)
+        if ret:
+            return ret
+
+        return None
+
+    def owner_of_variable(self, actor, name):
+        """Debugging; returns who owns variable instead of var itself"""
+
+        script = self
+        while script:
+            ret = script.variables.get_variable(name)
+            if ret:
+                return script
+            script = script.parent_script
+
+        ret = actor.variables.get_variable(name)
+        if ret:
+            return actor
+
+        ret = actor.project.variables.get_variable(name)
+        if ret:
+            return actor.project
+
+        return None
+
+    def full_debug_name_of_variable(self, actor, var_name):
+        owner = self.owner_of_variable(actor, var_name)
+        return "%s.%s" % (debug_name_for_object(owner), var_name)
+
+    def value_of_variable(self, actor, name):
+        v = self.get_variable(actor, name)
+        if v:
+            result = v.value()
+            if result:
+                return result
+        return data.Literal(None)
+
+    def set_variable(self, actor, name, value):
+        v = self.get_variable(actor, name)
+        if v:
+            print "%s -> %s" % (
+                self.full_debug_name_of_variable(actor, name), value)
+            v.set(value)
+        return None
+
+    def increment_variable(self, actor, name, increment):
+        v = self.get_variable(actor, name)
+        if v:
+            v.set(data.Literal(v.value().as_number() + increment))
+        return None
+
+    def show_variable(self, actor, name, visible):
+        # Not actually implemented
+        v = self.get_variable(actor, name)
+        if v:
+            v.show(True)
+        return None
+
+
+
 
 class BlockDefinition(object):
-    """This is a definition of a custom block"""
+    """This is a definition of a custom block.
+
+    A sample block definition in XML might look like:
+
+    <block-definition s="sum of %'alpha' and %'beta'"
+                      type="reporter" category="looks">
+        <inputs>
+            <input type="%s"/>
+            <input type="%s"/>
+        </inputs>
+        <script>
+            <block s="doReport">
+                <block s="reportSum">
+                    <block var="alpha"/>
+                    <block var="beta"/>
+                </block>
+            </block>
+        </script>
+    </block-definition>
+
+    and would be called by a block like:
+
+    <custom-block s="sum of %s and %s">
+        <l>12</l>
+        <l>47</l>
+    </custom-block>
+
+    """
 
     def __init__(self):
 
+        # Note: Say we have a block called "sum of alpha and beta"
+        # (which just adds alpha to beta and returns the result)
+        # The custom block that calls it will have a function name of:
+        # "sum of %s and %s", yet this block will have a specification of
+        # "sum of %'alpha' and %'beta'"
+
         # Properties
-        self.category = None        # Which category does this block belong in? "lists", "control", "operators", etc.
-        self.function_name = None   # What is the function's name (or 'selector')?
-        self.type = None            # What type is it? "reporter", "command", or "predicate"?
+        self.category = None       # Which category does this block belong in?
+                                   #   "lists", "control", "operators", etc.
+        self.specification = None  # What is the function's specification?
+                                   #   see note above.
+        self.type = None           # What type is it?
+                                   #   "reporter", "command", or "predicate"?
+
 
         # Child elements
         # 'header' and 'code' are empty in all the examples I've looked at
         self.header = None
         self.code = None
-        self.inputs = None
+        self.input_types = []
         self.script = Script()
+        self.extra_scripts = None   # left-over blocks, not a part of the fn
+
+        # Psuedo Properties
+        # (These are calculated from values in the XML)
+        self.parameter_names = []  # ex. ["alpha", "beta"]
+        self.function_name = ""    # ex. "sum of %s and %s"
+
+    def deserialize_inputs(self, input_node):
+        """Takes an XML node with inputs and stores what matters in a list"""
+        assert(input_node.tag == "inputs")
+        self.input_types = []
+        for child in input_node:
+            self.input_types.append(child.get("type"))
+
+    def serialize_inputs(self):
+        """Takes our input type data and turns it back into an XML tree"""
+        inputs = Element("inputs")
+        for item in self.input_types:
+            inputs.append(Element("input", type=item))
+        return inputs
+
+    def determine_names(self):
+        """Determines function name and parameter names.
+
+        Example Input:
+          self.specification = "sum of %'alpha' and %'beta'"
+          self.input_types = ["%s", "%s"]
+
+        Example Output:
+          self.parameter_names = ["alpha", "beta"]
+          self.function_name = "sum of %s and %s"
+
+        """
+
+        # Note: variable names can contain spaces
+        # ex. <block-definition s="foo %'long name input'" ...>
+        # OTOH, it doesn't seem to be legal to have a ' in the function name
+        # but I was able to put them into variable names.
+
+        # For now, we will declare single quotes in variable names to be
+        # illegal, as it will make the present implementation much simpler.
+
+        tokens = self.specification.split("'")
+        function_name_list = []
+        self.parameter_names = []
+        for index, token in enumerate(tokens[:-1]):
+        # [(0, 'sum of %'), (1, 'alpha'), (2, ' and %'), (3, 'beta')]
+        # The empty element at the end, (4, ''), has been sliced off
+            if index % 2 == 0:
+                # even entries go into the new list for the function name
+                function_name_list.append(token)
+            else:
+                # odd entries are input names
+                self.parameter_names.append(token)
+                # and the function name gets the input type for this slot
+                # without the redundant '%' symbol
+                specifier = self.input_types[index // 2]
+                function_name_list.append(specifier[1:])
+
+        self.function_name = "".join(function_name_list)
 
     def deserialize(self, elem):
         """Load from an xml element tree"""
         assert (elem.tag == "block-definition")
 
         # Properties
-        self.function_name = elem.get("s")
+        self.specification = elem.get("s")
         self.category = elem.get("category")
         self.type = elem.get("type")
 
         # Children
         self.header = elem.find("header")
         self.code = elem.find("code")
-        self.inputs = elem.find("inputs")
+        self.deserialize_inputs(elem.find("inputs"))
         self.script.deserialize(elem.find("script"))
-
+        self.extra_scripts = elem.find("scripts")
+        self.determine_names()
 
     def serialize(self):
         """Save out as an element tree"""
         definition = Element("block-definition",
-                             s=self.function_name,
+                             s=self.specification,
                              category=self.category,
                              type=self.type)
 
-        for child in (self.header, self.code, self.inputs, self.script.serialize()):
+        for child in (self.header, self.code,
+                      self.serialize_inputs(), self.script.serialize(),
+                      self.extra_scripts):
             if child is not None:
                 definition.append(child)
 
         return definition
 
+    def run(self, target, parent_script, params):
+        """Runs the defined block, and returns a value afterwards"""
+
+        print "RUN 1 Parent Script: %s" % debug_name_for_object(parent_script)
+        print "RUN 2 My Script: %s" % debug_name_for_object(self.script)
+
+        script = self.script.parallel_copy()
+
+        print "RUN 3 My Script: %s" % debug_name_for_object(script)
+
+        script.parent_script = parent_script
+
+        print "RUN 4 My Script: %s" % debug_name_for_object(script)
+
+
+        # set input parameters
+        for index, parameter in enumerate(params):
+            name = self.parameter_names[index]
+            script.variables.add(data.Variable(name, parameter))
+        initial_vars = str(script.variables)
+        print "Running %s %s: %s" % (self.function_name, debug_name_for_object(script), initial_vars)
+        result = script.run(target)
+        print "Done %s: %s (%s) -> %s (%s)" % (debug_name_for_object(script),
+                                          self.function_name, initial_vars,
+                                          result, script.variables)
+        return result
 
 class Blocks(object):
     """A list of block definitions"""
@@ -264,3 +556,18 @@ class Blocks(object):
         for definition in self.definitions:
             blocks_node.append(definition.serialize())
         return blocks_node
+
+    def find_block_definition(self, function_name):
+        for definition in self.definitions:
+            if definition.function_name == function_name:
+                return definition
+        return None
+
+#
+#    def get_custom_block(self, function_name):
+#        """Do we have a block definition for this block?"""
+
+#        block_definition = self.find_block_definition(function_name)
+#        if block_definition is not None:
+#            return block_definition.script.parallel_copy()  # need to return a function!
+#        return None

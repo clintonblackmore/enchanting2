@@ -340,52 +340,6 @@ class PyInterpreterTestCase(unittest.TestCase):
 
         self.compare_xml(xml, new_xml, True, "literals_intermediate.xml")
 
-    def test_variable_lookup(self):
-        "Do the project, stage, and sprite look up the right variables?"
-        proj = Project(None)
-        stage = Stage(proj)
-        sprite = Sprite(proj)
-        proj.variables.add(Variable("proj var", Literal(777)))
-        stage.variables.add(Variable("stage var", Literal(555)))
-        sprite.variables.add(Variable("sprite var", Literal(222)))
-
-        self.assertEqual(
-            [key for key in proj.variables.variables.keys() if not key.startswith(
-                "@")],
-            ['proj var'])
-        self.assertEqual(None, proj.get_variable("no such variable"))
-        self.assertNotEqual(None, proj.get_variable("proj var"))
-        self.assertEqual(None, proj.get_variable("stage var"))
-        self.assertEqual(None, proj.get_variable("sprite var"))
-        self.assertEqual(
-            777, proj.get_variable("proj var").value().as_number())
-
-        self.assertEqual(
-            [key for key in stage.variables.variables.keys() if not key.startswith(
-                "@")],
-            ['stage var'])
-        self.assertEqual(None, stage.get_variable("no such variable"))
-        self.assertNotEqual(None, stage.get_variable("proj var"))
-        self.assertNotEqual(None, stage.get_variable("stage var"))
-        self.assertEqual(None, stage.get_variable("sprite var"))
-        self.assertEqual(
-            777, stage.get_variable("proj var").value().as_number())
-        self.assertEqual(
-            555, stage.get_variable("stage var").value().as_number())
-
-        self.assertEqual(
-            [key for key in sprite.variables.variables.keys() if not key.startswith(
-                "@")],
-            ['sprite var'])
-        self.assertEqual(None, sprite.get_variable("no such variable"))
-        self.assertNotEqual(None, sprite.get_variable("proj var"))
-        self.assertEqual(None, sprite.get_variable("stage var"))
-        self.assertNotEqual(None, sprite.get_variable("sprite var"))
-        self.assertEqual(
-            777, sprite.get_variable("proj var").value().as_number())
-        self.assertEqual(
-            222, sprite.get_variable("sprite var").value().as_number())
-
     def test_variable_repr(self):
         x = Variable("name", Literal("val"))
         self.assertEqual(x, eval(repr(x)))
@@ -440,15 +394,19 @@ class PyInterpreterTestCase(unittest.TestCase):
 
         sprite.deserialize(elem)
         new_xml = ElementTree.tostring(sprite.serialize())
+        script = sprite.scripts[0]
 
         # Woohoo.  We can compare this successfully now!
         self.compare_xml(xml, new_xml, True, "script.xml")
 
-        self.assertEqual(sprite.get_variable("c").value().as_number(), 0)
+        self.assertEqual(
+            script.value_of_variable(sprite, "c").as_number(), 0)
 
-        sprite.scripts[0].run(sprite)
+        script.run(sprite)
 
-        self.assertEqual(sprite.get_variable("c").value().as_number(), 74)
+        self.assertEqual(
+            script.value_of_variable(sprite, "c").as_number(), 74)
+
 
     def test_costume(self):
 
@@ -498,11 +456,12 @@ class PyInterpreterTestCase(unittest.TestCase):
         # Run the pre-check
         for variable_name, start_value in pre_check.items():
             self.assertEqual(
-                sprite.get_variable(variable_name).value(), start_value)
+                test_script.value_of_variable(sprite, variable_name),
+                start_value)
 
         # Inject any values
         for variable_name, injected_value in injection.items():
-            sprite.set_variable(variable_name, injected_value)
+            test_script.set_variable(sprite, variable_name, injected_value)
 
         # Run the script
         test_script.run(sprite)
@@ -510,7 +469,9 @@ class PyInterpreterTestCase(unittest.TestCase):
         # Run the post-check
         for variable_name, final_value in post_check.items():
             self.assertEqual(
-                sprite.get_variable(variable_name).value(), final_value)
+                test_script.value_of_variable(sprite, variable_name),
+                final_value)
+
 
     def test_repeat_block(self):
         """Increment a counter five times in a loop.
@@ -591,6 +552,119 @@ class PyInterpreterTestCase(unittest.TestCase):
                 "result": Literal("meh")}, {
                 "feeling": Literal("whatever")})
 
+    def test_custom_block_parsing(self):
+        """Tests to see that we derive the right name
+        when parsing a custom block"""
+
+        xml = """
+        <block-definition s="sum of %'alpha' and %'beta'"
+                      type="reporter" category="looks">
+            <inputs>
+                <input type="%s"/>
+                <input type="%s"/>
+            </inputs>
+            <script>
+                <block s="doReport">
+                    <block s="reportSum">
+                        <block var="alpha"/>
+                        <block var="beta"/>
+                    </block>
+                </block>
+            </script>
+        </block-definition>
+        """
+
+        cb = factory.deserialize_xml(xml)
+        self.assertEqual(cb.specification, "sum of %'alpha' and %'beta'")
+        self.assertEqual(cb.function_name, "sum of %s and %s")
+        self.assertEqual(cb.parameter_names, ["alpha", "beta"])
+
+    def test_calling_custom_reporter_block(self):
+        """Calls a custom reported block.
+
+        The block is "add a to b" and does as the name says.
+
+        The code is:
+        set result to (add 5 to 7)
+        """
+
+        filename = "simple_custom_reporter_block.xml"
+
+        self.do_test_script(
+            filename,
+            {"result" : Literal(0)},
+            {"result" : Literal(12)})
+
+    def test_simple_custom_reporter__return_self(self):
+        """Calls a script that takes an input variable,
+        runs a custom block, and sets result to the value input"""
+
+        filename = "simple_custom_reporter__return_self.xml"
+
+        self.do_test_script(
+            filename,
+            post_check = {"result" : Literal(77)},
+            injection = {"input" : Literal(77)})
+
+        self.do_test_script(
+            filename,
+            post_check = {"result" : Literal(-92)},
+            injection = {"input" : Literal(-92)})
+
+        self.do_test_script(
+            filename,
+            post_check = {"result" : Literal(True)},
+            injection = {"input" : Literal(True)})
+
+        self.do_test_script(
+            filename,
+            post_check = {"result" : Literal("Testing")},
+            injection = {"input" : Literal("Testing")})
+
+
+    def do_test_fibonacci_sequence(self, filename):
+        """Tests a script that calculates a fibonacci sequence"""
+        first, second = 0, 1
+        expected_results = [first, second]
+        for i in range(10):
+            next = first + second
+            expected_results.append(next)
+            first, second = second, next
+
+        for i, expected in enumerate(expected_results):
+            self.do_test_script(filename,
+                                injection={"input": Literal(i)},
+                                post_check={"result": Literal(expected)})
+
+
+
+    def test_custom_recursive_block__fib(self):
+        """Calls a script with a custom block that calculates the Fibonacci
+        number for an input variable"""
+
+        self.do_test_fibonacci_sequence("custom_recursive_block__fib.xml")
+
+
+    def test_custom_recursive_block__fib_with_script_variables(self):
+        """Calls a script with a custom block that calculates the Fibonacci
+        number for an input variable"""
+
+        self.do_test_fibonacci_sequence(
+            "custom_recursive_block__fib_with_script_variables.xml")
+
+
+    def test_custom_recursive_block__long_adder(self):
+        """Test custom block that recursively adds two numbers"""
+
+        filename = "custom_recursive_block__long_adder.xml"
+
+        print
+        print "LongAdd(77, 5)"
+
+        self.do_test_script(
+            filename,
+            injection = {"start" : Literal(77), "depth": Literal(5)},
+            post_check = {"result" : Literal(82)})
 
 if __name__ == '__main__':
     clean_output_directories()

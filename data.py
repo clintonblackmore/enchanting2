@@ -317,6 +317,10 @@ class List(object):
     def __len__(self):
         return len(self.list)
 
+    def evaluate(self, target, script):
+        """Lists are already evaluated, but the caller doesn't know that"""
+        return self
+
     def as_number(self):
         return 0
 

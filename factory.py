@@ -21,6 +21,7 @@ def deserialize_value(element, *args):
         "comment": data.Comment,
         "costume": media.Costume,
         "costumes": media.Costumes,
+        "custom-block": script.Block,
         "l": data.Literal,
         "list": data.List,
         "project": actor.Project,

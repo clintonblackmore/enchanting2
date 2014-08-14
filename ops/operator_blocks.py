@@ -15,7 +15,8 @@ def reportSum(target_actor, parent_script, args):
 
 
 def reportDifference(target_actor, parent_script, args):
-    return data.Literal(args[0].as_number() - args[1].as_number())
+    result = data.Literal(args[0].as_number() - args[1].as_number())
+    return result
 
 
 def reportProduct(target_actor, parent_script, args):
