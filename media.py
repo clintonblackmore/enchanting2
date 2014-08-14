@@ -51,7 +51,8 @@ class PyGameMediaEnvironment(object):
 
         # convert media
         if stage:
-            # Convert the stage -- sprites are scaled, rotated, converted and cached
+            # Convert the stage -- sprites are scaled, rotated,
+            # converted and cached
             stage.convert_art(self)
 
     def draw(self, project):
@@ -237,7 +238,8 @@ class Costumes(object):
 
     def convert_art(self, media_env):
         # It is unclear if we should do this for anything but the stage
-        # as the sprite images as later rotated, scaled, cached, and then converted
+        # as the sprite images as later rotated, scaled, cached, and then
+        # converted
         if self.list_node:
             for costume in self.list_node.list:
                 costume.image = costume.image.convert_alpha()

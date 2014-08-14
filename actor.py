@@ -24,6 +24,7 @@ def get_blocks(elem):
         return factory.deserialize_value(blocks_node)
     return None
 
+
 def get_blocks_node(blocks):
     """Returns the node that represents the blocks, or none"""
     if blocks is None:
@@ -134,6 +135,7 @@ class BaseActor(object):
     def find_block_definition(self, function_name):
         bd = self.blocks.find_block_definition(function_name)
         return bd or self.project.find_block_definition(function_name)
+
 
 class Sprite(BaseActor):
 
@@ -345,7 +347,6 @@ class Stage(BaseActor):
         scripts_node = self.serialize_scripts()
         blocks_node = get_blocks_node(self.blocks)
 
-
         if self.costumes:
             costumes_node = self.costumes.serialize()
         else:
@@ -424,7 +425,8 @@ class Project:
 
         for child in (self.notes, self.thumbnail, self.stage.serialize(),
                       self.hidden, self.headers, self.code,
-                      get_blocks_node(self.blocks), self.variables.serialize()):
+                      get_blocks_node(self.blocks),
+                      self.variables.serialize()):
             if child is not None:
                 project.append(child)
         return project

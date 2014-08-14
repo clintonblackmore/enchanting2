@@ -2,6 +2,7 @@
 
 import data
 
+
 def var(target_actor, parent_script, name):
     """We expect a variable 'name', not the regular 'args' parameter,
     as the XML for this block is different."""
@@ -15,7 +16,10 @@ def doSetVar(target_actor, parent_script, args):
 
 def doChangeVar(target_actor, parent_script, args):
     name, incr = (args[0].as_string(), args[1])
-    return parent_script.increment_variable(target_actor, name, incr.as_number())
+    return parent_script.increment_variable(
+        target_actor,
+        name,
+        incr.as_number())
 
 
 def doShowVar(target_actor, parent_script, args):
@@ -26,6 +30,7 @@ def doShowVar(target_actor, parent_script, args):
 def doHideVar(target_actor, parent_script, args):
     name = args[0].as_string()
     return parent_script.show_variable(target_actor, name, False)
+
 
 def doDeclareVariables(target_actor, parent_script, args):
     list_of_vars = args[0]

@@ -9,4 +9,4 @@ to operate on."""
 
 # Make the most useful function readily available
 # (through it, a client gets at all the other functions)
-from utilities import bind_to_function
+from .utilities import bind_to_function

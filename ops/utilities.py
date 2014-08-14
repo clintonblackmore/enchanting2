@@ -1,8 +1,8 @@
-import operator_blocks
-import variable_blocks
-import control_blocks
-import looks_blocks
-import motion_blocks
+from . import operator_blocks
+from . import variable_blocks
+from . import control_blocks
+from . import looks_blocks
+from . import motion_blocks
 
 search_list = (operator_blocks, variable_blocks,
                control_blocks, looks_blocks,

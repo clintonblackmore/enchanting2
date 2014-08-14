@@ -16,9 +16,11 @@ import data
 import factory
 import ops
 
+
 def terse_debug_id(obj):
     """Returns a terse ID for the object for debugging purposes"""
     return hex(id(obj)).upper()[-5:-1]
+
 
 def debug_name_for_object(obj):
     if obj.__class__.__name__ == "Script":
@@ -26,7 +28,9 @@ def debug_name_for_object(obj):
     else:
         return "~%s<%s>" % (obj.__class__.__name__, terse_debug_id(obj))
 
+
 class BlockType(object):
+
     """A simple enum to represent the type of a block"""
     unknown, regular, custom = range(0, 3)
     name_list = ["", "block", "custom-block"]
@@ -39,10 +43,10 @@ class BlockType(object):
     def block_type_name_from_value(value):
         return BlockType.name_list[value]
 
+
 class Block(object):
 
     """This is a code block, representing an instruction to execute"""
-
 
     def __init__(self):
         self.function = None  # used to actually call the function
@@ -81,7 +85,7 @@ class Block(object):
                 BlockType.block_type_name_from_value(self.type),
                 s=self.function_name)
         else:
-            # this is a var block (which is always a 'block', never a 'custom-block')
+            # this is a var block (note: not a 'custom-block')
             block = Element("block", var=self.var_name)
         for arg in self.arguments:
             block.append(arg.serialize())
@@ -91,7 +95,8 @@ class Block(object):
         """Is this a hat-shaped, script-triggering block?"""
         # appropriate function names include receiveGo, receiveKey,
         # receiveBroadcast
-        return self.type is BlockType.regular and self.function_name.startswith("receive")
+        return self.type is BlockType.regular and \
+            self.function_name.startswith("receive")
 
     def evaluate(self, target, script):
         # evaluate each of the arguments
@@ -152,11 +157,12 @@ class Script(object):
         return self
 
     def parallel_copy(self):
-        """Clone the script -- all the flow control information is copied, but the code is left the same.
+        """Clone script -- keep code, but create new flow control information
 
-        Especially for custom blocks, the same script may run more than once concurrently.
-        It needs to have its own equivalent to a call stack and heap, but the code itself
-        remains the same.  To achieve that end, we point at the existing list of blocks,
+        Especially for custom blocks (or worse, recursive blocks!), the same
+        script may run more than once concurrently. It needs to have its own
+        equivalent to a call stack and heap, but the code itself remains the
+        same.  To achieve that end, we point at the existing list of blocks,
         but we create a new copy of the code position, etc."""
         clone = Script()
         clone.blocks = self.blocks
@@ -279,7 +285,7 @@ class Script(object):
             self_and_parents.append(part_name)
             script = script.parent_script
 
-            assert(len(self_and_parents) < 200) # infinite loop
+            assert(len(self_and_parents) < 500)  # infinite loop
 
         self_and_parents.reverse()
         return "Script<%s>" % ".".join(self_and_parents)
@@ -361,9 +367,8 @@ class Script(object):
         return None
 
 
-
-
 class BlockDefinition(object):
+
     """This is a definition of a custom block.
 
     A sample block definition in XML might look like:
@@ -402,13 +407,13 @@ class BlockDefinition(object):
         # "sum of %'alpha' and %'beta'"
 
         # Properties
-        self.category = None       # Which category does this block belong in?
-                                   #   "lists", "control", "operators", etc.
-        self.specification = None  # What is the function's specification?
-                                   #   see note above.
-        self.type = None           # What type is it?
-                                   #   "reporter", "command", or "predicate"?
 
+        # Which category does this block belong in? ("lists", "control", etc)
+        self.category = None
+        # What is the function's specification? (See note for __init__())
+        self.specification = None
+        # What type is this block? "reporter", "command", or "predicate"?
+        self.type = None
 
         # Child elements
         # 'header' and 'code' are empty in all the examples I've looked at
@@ -462,7 +467,8 @@ class BlockDefinition(object):
         function_name_list = []
         self.parameter_names = []
         for index, token in enumerate(tokens):
-        # [(0, 'sum of %'), (1, 'alpha'), (2, ' and %'), (3, 'beta'), (4, '')]
+            # [(0, 'sum of %'), (1, 'alpha'), (2, ' and %'),
+            #  (3, 'beta'), (4, '')]
             if index % 2 == 0:
                 # even entries go into the new list for the function name
                 function_name_list.append(token)
@@ -517,14 +523,16 @@ class BlockDefinition(object):
         for index, parameter in enumerate(params):
             name = self.parameter_names[index]
             script.variables.add(data.Variable(name, parameter))
-        #initial_vars = str(script.variables)
+        # initial_vars = str(script.variables)
         result = script.run(target)
-        #print "Done %s: %s (%s) -> %s (%s)" % (debug_name_for_object(script),
+        # print "Done %s: %s (%s) -> %s (%s)" % (debug_name_for_object(script),
         #                                  self.function_name, initial_vars,
         #                                  result, script.variables)
         return result
 
+
 class Blocks(object):
+
     """A list of block definitions"""
 
     def __init__(self):
@@ -555,5 +563,5 @@ class Blocks(object):
 
 #        block_definition = self.find_block_definition(function_name)
 #        if block_definition is not None:
-#            return block_definition.script.parallel_copy()  # need to return a function!
+# return block_definition.script.parallel_copy()  # need to return a function!
 #        return None
