@@ -6,6 +6,8 @@
  blocks - a collection of block definitions
 """
 
+import pdb
+
 from xml.etree.cElementTree import Element
 
 import gevent
@@ -96,7 +98,7 @@ class Block(object):
         if self.var_name is None:
             args = []
             args = [arg.evaluate(target, script) for arg in self.arguments
-                    if not isinstance(arg, (data.Comment))]
+                    if not isinstance(arg, data.Comment)]
             # if not isinstance(arg, (data.Comment, Script))]
         else:
             args = self.var_name
@@ -112,6 +114,7 @@ class Block(object):
             result = self.function(target, script, args)
         else:
             print "Unknown function: %s" % self.function_name
+            pdb.set_trace()
             result = data.Literal(None)
 
         # to do -- save args and result with timestamp
@@ -138,7 +141,6 @@ class Script(object):
         self.blocks = []
         self.parent_script = None
         self.from_start()
-        print "Init: " + self.debug_name()
 
     def from_start(self):
         """Sets or re-sets the script to begin and the start"""
@@ -147,7 +149,6 @@ class Script(object):
         self.repeat = 0  # adjusted by flow control blocks
         self.stopped = False
         self.variables = data.Variables()
-        print "frst: " + self.debug_name()
         return self
 
     def parallel_copy(self):
@@ -162,7 +163,6 @@ class Script(object):
         clone.x, clone.y = self.x, self.y
         clone.parent_script = self.parent_script
         clone.from_start()
-        print "||cp: %s <- %s" % (clone.debug_name(), self.debug_name())
         return clone
 
     def deserialize(self, elem):
@@ -211,10 +211,10 @@ class Script(object):
         if self.subscript:
             # step the script until it is done
             try:
-                print "(sub) ",
+                # print "(sub) ",
                 self.subscript.step(target)
             except StopIteration as e:
-                print "(exit)"
+                # print "(exit)"
                 self.subscript = None
                 result = e.args[0]
                 if result is not None:
@@ -225,7 +225,7 @@ class Script(object):
             else:
                 raise StopIteration(None)
 
-            print "%s: %s" % (debug_name_for_object(self), current_block)
+            # print "%s: %s" % (debug_name_for_object(self), current_block)
             current_block.evaluate(target, self)
             # print "(repeat %s)" % self.repeat
             if not self.repeat:
@@ -256,10 +256,8 @@ class Script(object):
 
     def activate_subscript(self, subscript):
         """Lets you run a nested script (like a 'repeat' or 'if' block)"""
-        print "Activating subscript: " + subscript.debug_name()
         self.subscript = subscript.parallel_copy()
         self.subscript.parent_script = self
-        print "Activated subscript: " + self.subscript.debug_name()
 
     def starts_on_trigger(self):
         """After the script runs, should it be queued up
@@ -344,8 +342,8 @@ class Script(object):
     def set_variable(self, actor, name, value):
         v = self.get_variable(actor, name)
         if v:
-            print "%s -> %s" % (
-                self.full_debug_name_of_variable(actor, name), value)
+            # print "%s -> %s" % (
+            #    self.full_debug_name_of_variable(actor, name), value)
             v.set(value)
         return None
 
@@ -463,9 +461,8 @@ class BlockDefinition(object):
         tokens = self.specification.split("'")
         function_name_list = []
         self.parameter_names = []
-        for index, token in enumerate(tokens[:-1]):
-        # [(0, 'sum of %'), (1, 'alpha'), (2, ' and %'), (3, 'beta')]
-        # The empty element at the end, (4, ''), has been sliced off
+        for index, token in enumerate(tokens):
+        # [(0, 'sum of %'), (1, 'alpha'), (2, ' and %'), (3, 'beta'), (4, '')]
             if index % 2 == 0:
                 # even entries go into the new list for the function name
                 function_name_list.append(token)
@@ -514,28 +511,17 @@ class BlockDefinition(object):
     def run(self, target, parent_script, params):
         """Runs the defined block, and returns a value afterwards"""
 
-        print "RUN 1 Parent Script: %s" % debug_name_for_object(parent_script)
-        print "RUN 2 My Script: %s" % debug_name_for_object(self.script)
-
         script = self.script.parallel_copy()
-
-        print "RUN 3 My Script: %s" % debug_name_for_object(script)
-
         script.parent_script = parent_script
-
-        print "RUN 4 My Script: %s" % debug_name_for_object(script)
-
-
         # set input parameters
         for index, parameter in enumerate(params):
             name = self.parameter_names[index]
             script.variables.add(data.Variable(name, parameter))
-        initial_vars = str(script.variables)
-        print "Running %s %s: %s" % (self.function_name, debug_name_for_object(script), initial_vars)
+        #initial_vars = str(script.variables)
         result = script.run(target)
-        print "Done %s: %s (%s) -> %s (%s)" % (debug_name_for_object(script),
-                                          self.function_name, initial_vars,
-                                          result, script.variables)
+        #print "Done %s: %s (%s) -> %s (%s)" % (debug_name_for_object(script),
+        #                                  self.function_name, initial_vars,
+        #                                  result, script.variables)
         return result
 
 class Blocks(object):
