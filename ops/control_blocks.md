@@ -36,7 +36,7 @@ run w/continuation          |
 call w/continuation         |                                
                             |                                   
 when I start as a clone     |                                   
-create a ckine if [ ]       |                                   
+create a clone if [ ]       |                                   
 delete this clone           |
                             |                                   
 pause all                   |

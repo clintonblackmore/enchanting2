@@ -59,6 +59,10 @@ Once it is running, it'll tell you it is hosting a webserver and what port it is
 
 Then, fire up a capable web browser (the one on the Raspberry Pi is not capable!) and type in the address: voila!
 
+Which Blocks Work
+-----------------
+
+If you go into the 'ops' directory, there is a .md file for each set of blocks that has been implemented.  Look at it to know which blocks work and which done.
 
 Join Us!
 --------
