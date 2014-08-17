@@ -6,8 +6,6 @@
  blocks - a collection of block definitions
 """
 
-import pdb
-
 from xml.etree.cElementTree import Element
 
 import gevent
@@ -119,7 +117,6 @@ class Block(object):
             result = self.function(target, script, args)
         else:
             print "Unknown function: %s" % self.function_name
-            pdb.set_trace()
             result = data.Literal(None)
 
         # to do -- save args and result with timestamp

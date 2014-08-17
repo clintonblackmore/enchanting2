@@ -457,3 +457,18 @@ class Project:
     def stop_all_scripts(self):
         for actor in self.all_actors():
             actor.stop_all_scripts()
+
+    def sprite_from_index(self, index):
+        """Takes an index and returns a sprite"""
+        # Surely this could be optimized.  It is a shame "watchers" are in
+        # the same array as the sprites.
+
+        # indices don't work as expected.  Maybe I need names or GUIDS
+        # ugly hack! return first sprite
+        return self.all_actors()[1]
+
+        for sprite in self.stage.sprites:
+            if isinstance(sprite, BaseActor):
+                if sprite.idx == index:
+                    return sprite
+        return None

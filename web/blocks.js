@@ -2963,9 +2963,16 @@ BlockMorph.prototype.mouseClickLeft = function () {
         return top.mouseClickLeft();
     }
     if (receiver) {
-        stage = receiver.parentThatIsA(StageMorph);
-        if (stage) {
-            stage.threads.toggleProcess(top);
+        if (true) { // if sending data to remote source
+            ide = receiver.parentThatIsA(IDE_Morph);
+            if (ide) {
+                ide.remotelyExecuteBlock(receiver, top);
+            }
+        } else { // executing block locally
+            stage = receiver.parentThatIsA(StageMorph);
+            if (stage) {
+                stage.threads.toggleProcess(top);
+            }
         }
     }
 };

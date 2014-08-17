@@ -11,8 +11,9 @@ except:
 
 import factory
 import server
+import script
 
-port = 8080
+port = 8000
 
 
 def is_trigger_key(top_block, media_and_event):
@@ -151,6 +152,8 @@ class EventLoop(object):
               % (len(self.clients), client)
 
     def message_from_client(self, message, client):
+        print "message_from_client"
+        print message
         split = message.find(" ")
         if split == -1:
             print "Unrecognized message: %s" % message
@@ -164,6 +167,9 @@ class EventLoop(object):
             self.trigger_green_flag()
         elif command == "stop_sign_press":
             self.stop_all_scripts()
+        elif command == "execute_block":
+            self.execute_block(message, split, client)
+
         else:
             print "Unrecognized command: %s" % command
 
@@ -172,3 +178,35 @@ class EventLoop(object):
         for client in self.clients:
             if client != source_client:
                 client.ws.send(message)
+
+    def execute_block(self, message, split, client):
+        """Executed block requested by user and return result"""
+        # payload is the index of the sprite,
+        # and the xml of the block to run
+        split2 = message.find(" ", split + 1)
+        sprite_index = int(message[split + 1:split2])
+        sprite = self.project.sprite_from_index(sprite_index)
+        xml = message[split2 + 1:]
+
+        # run the block and return the result
+        greenlet = gevent.spawn(self.execute_block_and_return_result,
+                                sprite, xml, client)
+        self.active_scripts.add(greenlet)
+
+    def execute_block_and_return_result(self, sprite, xml_for_block, client):
+        """Runs a block and tells client the result"""
+
+        # We seem to get command blocks wrapped up in scripts
+        # and reporter blocks as blocks
+
+        print xml_for_block
+        obj = factory.deserialize_xml(xml_for_block)
+        if isinstance(obj, script.Script):
+            result = obj.run(sprite)
+            # result is almost certainly 'None'
+        else:
+            empty_script = script.Script()
+            result = obj.evaluate(sprite, empty_script)
+        if result is not None:
+            result_xml = factory.xml_for_object(result)
+            client.ws.send("execute_block_result %s" % result_xml)

@@ -392,29 +392,32 @@ IDE_Morph.prototype.openIn = function (world) {
     this.websocket = new WebSocket(ws_url);
 
     this.websocket.onopen = function (event) {
-        console.log("Opened websocket")
+        console.log("Opened websocket");
     };
 
     this.websocket.onclose = function (event) {
-        console.log("Closed websocket")
+        console.log("Closed websocket");
     };
 
     this.websocket.onerror = function (event) {
-        console.log("Websocket error: " + event.data)
+        console.log("Websocket error: " + event.data);
     };
 
     this.websocket.onmessage = function (event) {
-        split = event.data.indexOf(" ")
+        split = event.data.indexOf(" ");
         if (split == -1) {
             console.log("Websocket received unknown message: " + event.data);
             return;
         }
-        command = event.data.substring(0, split)
+        command = event.data.substring(0, split);
+        payload = event.data.substring(split + 1);
         console.log("Processing command: " + command);
         switch (command) {
             case "load_project":
-                xml = event.data.substring(split + 1);
-                myself.openProjectString(xml);
+                myself.onLoadProject(payload);
+                break;
+            case "execute_block_result":
+                myself.onExecuteBlockResult(payload);
                 break;
             default:
                 console.log("Unknown command: " + command);
@@ -662,7 +665,7 @@ IDE_Morph.prototype.createControlBar = function () {
     // hacked upload + sync button
     button = new PushButtonMorph(
         this,
-        'pushProject',
+        'remotelyPushProject',
         new SymbolMorph('cloud', 14)
     );
     button.corner = 12;
@@ -1667,17 +1670,11 @@ IDE_Morph.prototype.pressStart = function () {
         this.toggleFastTracking();
     } else {
         this.runScripts();
-        if (this.websocket) {
-            this.websocket.send("green_flag_press ");
-        }
+        this.remotelyStartScripts();
     }
 };
 
-IDE_Morph.prototype.pushProject = function () {
-    if (this.websocket) {
-        this.websocket.send("load_project " + this.serializer.serialize(this.stage));
-    }
-};
+
 
 IDE_Morph.prototype.toggleFastTracking = function () {
     if (this.stage.isFastTracked) {
@@ -1733,9 +1730,7 @@ IDE_Morph.prototype.isPaused = function () {
 
 IDE_Morph.prototype.stopAllScripts = function () {
     this.stage.fireStopAllEvent();
-    if (this.websocket) {
-        this.websocket.send("stop_sign_press ");
-    }
+    this.remotelyStopAllScripts();
 };
 
 IDE_Morph.prototype.selectSprite = function (sprite) {
@@ -4184,6 +4179,56 @@ IDE_Morph.prototype.prompt = function (message, callback, choices, key) {
         choices
     );
 };
+
+// IDE Morph websocket routines
+
+// pushes the green flag, on the server
+IDE_Morph.prototype.remotelyStartScripts = function () {
+    if (this.websocket) {
+        this.websocket.send("green_flag_press ");
+    }
+};
+
+// pushes the stop button, on the server
+IDE_Morph.prototype.remotelyStopAllScripts = function () {
+    if (this.websocket) {
+        this.websocket.send("stop_sign_press ");
+    }
+};
+
+// Pushed up an entire project to the execution engine server
+IDE_Morph.prototype.remotelyPushProject = function () {
+    if (this.websocket) {
+        this.websocket.send("load_project " + this.serializer.serialize(this.stage));
+    }
+};
+
+// We are being told to load the project specified in the xml
+IDE_Morph.prototype.onLoadProject = function (payload) {
+    this.openProjectString(payload);
+};
+
+// Runs a block that has been clicked on, on the server
+IDE_Morph.prototype.remotelyExecuteBlock = function (sprite, block) {
+    if (this.websocket) {
+        sprite_idx = this.sprites.asArray().indexOf(sprite)
+        message = "execute_block " + sprite_idx + " " + this.serializer.serialize(block)
+        console.log(message);
+        this.websocket.send(message);
+    }
+};
+
+// The remote block ran, and this is the result
+IDE_Morph.prototype.onExecuteBlockResult = function (payload) {
+    // Hmm... don't seem to know how to deserialize the XML
+    //result = this.serializer.deserialize(payload);
+    // I haven't figured out how to show this in the UI yet
+    //console.log(result);
+
+    console.log("onExecuteBlockResult -> " + payload);
+};
+
+
 
 // ProjectDialogMorph ////////////////////////////////////////////////////
 
