@@ -171,7 +171,7 @@ class Costume(object):
         #   import xml.etree.cElementTree as ElementTree
         #   print "Bad Image Node: " + ElementTree.dump(elem)
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
 
         node = Element("costume")
@@ -230,10 +230,10 @@ class Costumes(object):
         self.list_node = data.List()
         self.list_node.deserialize(elem[0])
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
         costumes_node = Element("costumes")
-        costumes_node.append(self.list_node.serialize())
+        costumes_node.append(self.list_node.serialize(**kwargs))
         return costumes_node
 
     def convert_art(self, media_env):

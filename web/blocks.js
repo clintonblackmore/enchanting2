@@ -1870,10 +1870,13 @@ function BlockMorph() {
     this.init();
 }
 
+
+
 BlockMorph.prototype.init = function () {
     this.selector = null; // name of method to be triggered
     this.blockSpec = ''; // formal description of label and arguments
     this.comment = null; // optional "sticky" comment morph
+    this.uuid = this.generateUUID();
 
     // not to be persisted:
     this.instantiationSpec = null; // spec to set upon fullCopy() of template
@@ -1881,6 +1884,18 @@ BlockMorph.prototype.init = function () {
 
     BlockMorph.uber.init.call(this);
     this.color = new Color(0, 17, 173);
+};
+
+BlockMorph.prototype.generateUUID = function() {
+    // returns a UUID
+    // generic function; knows nothing of BlockMorph
+    var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+    });
+    return uuid;
 };
 
 BlockMorph.prototype.receiver = function () {

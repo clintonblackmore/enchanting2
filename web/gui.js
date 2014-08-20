@@ -388,7 +388,7 @@ IDE_Morph.prototype.openIn = function (world) {
 
     // Set up a websocket connection to the server
     console.log("Creating websocket")
-    ws_url = "ws://" + document.URL.substring(7) + "ws"     // ex: ws://localhost:8080/ws
+    ws_url = "ws://" + window.location.host + "/ws"     // ex: ws://localhost:8080/ws
     this.websocket = new WebSocket(ws_url);
 
     this.websocket.onopen = function (event) {

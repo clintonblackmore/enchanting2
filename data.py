@@ -84,7 +84,7 @@ class Literal(object):
         else:  # elem.tag == "bool":
             self.set_value(elem.text == "true")
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Save out as an element tree"""
         if isinstance(self.value, bool):
             literal = Element("bool")
@@ -189,7 +189,7 @@ class Color(object):
         assert (elem.tag == "color")
         self.color_string = elem.text
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         "Save out as an element tree"
         color = Element("color")
         color.text = self.color_string
@@ -233,7 +233,7 @@ class Comment(object):
         assert (elem.tag == "comment")
         self.comment_node = elem
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         "Save out as an element tree"
         return self.comment_node
 
@@ -285,14 +285,14 @@ class List(object):
             self.list = [factory.deserialize_value(item)
                          for item in elem]
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Save out as an element tree"""
         list_node = Element("list")
         if self.id is not None:
             list_node.set("id", self.id)
 
         for entry in self.list:
-            datum_node = entry.serialize()
+            datum_node = entry.serialize(**kwargs)
             if not self.broken_into_items:
                 list_node.append(datum_node)
             else:
@@ -362,11 +362,11 @@ class Variable(object):
             self.contents = factory.deserialize_value(elem[0])
             assert (self.contents is not None)
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Save out as an element tree"""
         variable = Element("variable", name=self.name)
         if self.contents is not None:
-            variable.append(self.contents.serialize())
+            variable.append(self.contents.serialize(**kwargs))
         return variable
 
     def __eq__(self, other):
@@ -427,13 +427,13 @@ class Variables(object):
             v.deserialize(child_node)
             self.add(v)
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
         variables = Element("variables")
         for variable in self.variables.values():
             # Do not serialize internal variables
             if not variable.name.startswith("@"):
-                variables.append(variable.serialize())
+                variables.append(variable.serialize(**kwargs))
         return variables
 
     def __eq__(self, other):

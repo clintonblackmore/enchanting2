@@ -46,6 +46,6 @@ def deserialize_file(filename, *args):
     return deserialize_value(ElementTree.parse(filename).getroot(), *args)
 
 
-def xml_for_object(object):
+def xml_for_object(object, **kwargs):
     """Return the XML that represents this object"""
-    return ElementTree.tostring(object.serialize())
+    return ElementTree.tostring(object.serialize(**kwargs))

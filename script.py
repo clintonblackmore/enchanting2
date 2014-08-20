@@ -7,6 +7,7 @@
 """
 
 from xml.etree.cElementTree import Element
+import uuid
 
 import gevent
 
@@ -53,6 +54,11 @@ class Block(object):
         self.var_name = None  # only set if this is a 'var' block
         self.type = BlockType.unknown
 
+        # If you somehow create a real block without deserializing it,
+        # please set the uuid
+        self.uuid = None  # uuid.uuid1()
+        self.deserialized_uuid = False
+
     def deserialize(self, elem):
         """Load from an xml element tree"""
 
@@ -72,10 +78,19 @@ class Block(object):
             # Custom functions are defined after they are used in the XML
             self.function = None
 
+        # Each block needs a unique ID; create one if it doesn't have one
+        identifier = elem.get("uuid")
+        if identifier:
+            self.uuid = uuid.UUID(identifier)  # convert from str to object
+            self.deserialized_uuid = True
+        else:
+            self.uuid = uuid.uuid1()  # generate new UUID
+            self.deserialized_uuid = False
+
         self.arguments = [factory.deserialize_value(child)
                           for child in elem]
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Save out as an element tree"""
         if self.var_name is None:
             # this is a standard block, not a variable block
@@ -86,7 +101,18 @@ class Block(object):
             # this is a var block (note: not a 'custom-block')
             block = Element("block", var=self.var_name)
         for arg in self.arguments:
-            block.append(arg.serialize())
+            block.append(arg.serialize(**kwargs))
+
+        # Always output a UUID
+        # unless we are passed the option "only_source_uuids"
+        # in which case, only UUIDs that we read in initially
+        # will be outputted
+
+        if self.deserialized_uuid or \
+                kwargs.get("only_source_uuids", False) is False:
+            assert self.uuid is not None
+            block.set("uuid", str(self.uuid))
+
         return block
 
     def is_hat_block(self):
@@ -185,7 +211,7 @@ class Script(object):
             b.deserialize(block)
             self.blocks.append(b)
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
 
         # We have sprite objects and watcher nodes; make a tree of nodes
@@ -195,7 +221,7 @@ class Script(object):
             script = Element("script", x=self.x, y=self.y)
 
         for block in self.blocks:
-            script.append(block.serialize())
+            script.append(block.serialize(**kwargs))
 
         return script
 
@@ -432,7 +458,7 @@ class BlockDefinition(object):
         for child in input_node:
             self.input_types.append(child.get("type"))
 
-    def serialize_inputs(self):
+    def serialize_inputs(self, **kwargs):
         """Takes our input type data and turns it back into an XML tree"""
         inputs = Element("inputs")
         for item in self.input_types:
@@ -496,7 +522,7 @@ class BlockDefinition(object):
         self.extra_scripts = elem.find("scripts")
         self.determine_names()
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Save out as an element tree"""
         definition = Element("block-definition",
                              s=self.specification,
@@ -504,7 +530,8 @@ class BlockDefinition(object):
                              type=self.type)
 
         for child in (self.header, self.code,
-                      self.serialize_inputs(), self.script.serialize(),
+                      self.serialize_inputs(**kwargs),
+                      self.script.serialize(**kwargs),
                       self.extra_scripts):
             if child is not None:
                 definition.append(child)
@@ -541,11 +568,11 @@ class Blocks(object):
         for child in elem:
             self.definitions.append(factory.deserialize_value(child))
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Save out as an element tree"""
         blocks_node = Element("blocks")
         for definition in self.definitions:
-            blocks_node.append(definition.serialize())
+            blocks_node.append(definition.serialize(**kwargs))
         return blocks_node
 
     def find_block_definition(self, function_name):

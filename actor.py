@@ -25,11 +25,11 @@ def get_blocks(elem):
     return None
 
 
-def get_blocks_node(blocks):
+def get_blocks_node(blocks, **kwargs):
     """Returns the node that represents the blocks, or none"""
     if blocks is None:
         return None
-    return blocks.serialize()
+    return blocks.serialize(**kwargs)
 
 
 class BaseActor(object):
@@ -74,11 +74,11 @@ class BaseActor(object):
             if event_loop:
                 event_loop.queue(new_script, self)
 
-    def serialize_scripts(self):
+    def serialize_scripts(self, **kwargs):
         """Returns a script node for use in serialization"""
         scripts_node = Element("scripts")
         for item in self.scripts:
-            scripts_node.append(item.serialize())
+            scripts_node.append(item.serialize(**kwargs))
         return scripts_node
 
     def __str__(self):
@@ -195,15 +195,15 @@ class Sprite(BaseActor):
         # unique children
         self.nest = elem.find("nest")
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
 
-        variables_node = self.variables.serialize()
-        scripts_node = self.serialize_scripts()
-        blocks_node = get_blocks_node(self.blocks)
+        variables_node = self.variables.serialize(**kwargs)
+        scripts_node = self.serialize_scripts(**kwargs)
+        blocks_node = get_blocks_node(self.blocks, **kwargs)
 
         if self.costumes:
-            costumes_node = self.costumes.serialize()
+            costumes_node = self.costumes.serialize(**kwargs)
         else:
             costumes_node = None
 
@@ -331,24 +331,24 @@ class Stage(BaseActor):
                 # it is a 'watcher' node
                 self.sprites.append(child)
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
 
         # We have sprite objects and watcher nodes; make a tree of nodes
         sprites = Element("sprites")
         for item in self.sprites:
             if isinstance(item, Sprite):
-                sprites.append(item.serialize())
+                sprites.append(item.serialize(**kwargs))
             else:
                 # it is a 'watcher' node
                 sprites.append(item)
 
-        variables_node = self.variables.serialize()
-        scripts_node = self.serialize_scripts()
-        blocks_node = get_blocks_node(self.blocks)
+        variables_node = self.variables.serialize(**kwargs)
+        scripts_node = self.serialize_scripts(**kwargs)
+        blocks_node = get_blocks_node(self.blocks, **kwargs)
 
         if self.costumes:
-            costumes_node = self.costumes.serialize()
+            costumes_node = self.costumes.serialize(**kwargs)
         else:
             costumes_node = None
 
@@ -417,16 +417,17 @@ class Project:
         self.blocks = get_blocks(elem)
         self.variables.deserialize(elem.find("variables"))
 
-    def serialize(self):
+    def serialize(self, **kwargs):
         """Return an elementtree representing this object"""
 
         project = Element("project", name=self.name,
                           app=self.app, version=self.version)
 
-        for child in (self.notes, self.thumbnail, self.stage.serialize(),
+        for child in (self.notes, self.thumbnail,
+                      self.stage.serialize(**kwargs),
                       self.hidden, self.headers, self.code,
-                      get_blocks_node(self.blocks),
-                      self.variables.serialize()):
+                      get_blocks_node(self.blocks, **kwargs),
+                      self.variables.serialize(**kwargs)):
             if child is not None:
                 project.append(child)
         return project

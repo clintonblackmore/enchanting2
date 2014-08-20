@@ -935,15 +935,22 @@ SnapSerializer.prototype.loadComment = function (model) {
 
 SnapSerializer.prototype.loadBlock = function (model, isReporter) {
     // private
-    var block, info, inputs, isGlobal, rm, receiver;
+    var block, info, inputs, isGlobal, rm, receiver, uuid;
+    if (Object.prototype.hasOwnProperty.call(model.attributes, 'uuid')) {
+        uuid = model.attributes.uuid;
+    }
     if (model.tag === 'block') {
         if (Object.prototype.hasOwnProperty.call(
                 model.attributes,
                 'var'
             )) {
-            return SpriteMorph.prototype.variableBlock(
+            block = SpriteMorph.prototype.variableBlock(
                 model.attributes['var']
             );
+            if (uuid) {
+                block.uuid = uuid;
+            }
+            return block;
         }
         block = SpriteMorph.prototype.blockForSelector(model.attributes.s);
     } else if (model.tag === 'custom-block') {
@@ -1003,6 +1010,9 @@ SnapSerializer.prototype.loadBlock = function (model, isReporter) {
             this.loadInput(child, inputs[i], block);
         }
     }, this);
+    if (uuid) {
+        block.uuid = uuid;
+    }
     return block;
 };
 
@@ -1617,8 +1627,9 @@ BlockMorph.prototype.toXML = BlockMorph.prototype.toScriptXML = function (
 
 BlockMorph.prototype.toBlockXML = function (serializer) {
     return serializer.format(
-        '<block s="@">%%</block>',
+        '<block s="@" uuid="@">%%</block>',
         this.selector,
+        this.uuid,
         serializer.store(this.inputs()),
         this.comment ? this.comment.toXML(serializer) : ''
     );
@@ -1626,8 +1637,8 @@ BlockMorph.prototype.toBlockXML = function (serializer) {
 
 ReporterBlockMorph.prototype.toXML = function (serializer) {
     return this.selector === 'reportGetVar' ? serializer.format(
-        '<block var="@"/>',
-        this.blockSpec
+        '<block var="@" uuid="@"/>',
+        this.blockSpec, this.uuid
     ) : this.toBlockXML(serializer);
 };
 
@@ -1660,8 +1671,8 @@ CustomCommandBlockMorph.prototype.toBlockXML = function (serializer) {
     var scope = this.definition.isGlobal ? undefined
         : this.definition.receiver.name;
     return serializer.format(
-        '<custom-block s="@"%>%%%</custom-block>',
-        this.blockSpec,
+        '<custom-block s="@" uuid="@"%>%%%</custom-block>',
+        this.blockSpec, this.uuid,
         this.definition.isGlobal ?
                 '' : serializer.format(' scope="@"', scope),
         serializer.store(this.inputs()),

@@ -127,7 +127,7 @@ class PyInterpreterTestCase(unittest.TestCase):
         for nodename in findlist:
             start_node = start_node.find(nodename)
         obj.deserialize(start_node)
-        clone_node = obj.serialize()
+        clone_node = obj.serialize(only_source_uuids=True)
 
         search_tree_for_anomalies(clone_node)
 
@@ -137,9 +137,9 @@ class PyInterpreterTestCase(unittest.TestCase):
             True,
             "".join((obj.__class__.__name__, "_", filename)))
 
-    def do_test_using_factory(self, xml, filename):
+    def do_test_using_factory(self, xml, filename, **kwargs):
         obj = factory.deserialize_value(ElementTree.XML(xml))
-        new_xml = ElementTree.tostring(obj.serialize())
+        new_xml = ElementTree.tostring(obj.serialize(**kwargs))
         self.compare_xml(xml, new_xml, True, filename)
 
     def test_serialization_of_project(self):
@@ -393,7 +393,7 @@ class PyInterpreterTestCase(unittest.TestCase):
         sprite = Sprite(None)
 
         sprite.deserialize(elem)
-        new_xml = ElementTree.tostring(sprite.serialize())
+        new_xml = ElementTree.tostring(sprite.serialize(only_source_uuids = True))
         script = sprite.scripts[0]
 
         # Woohoo.  We can compare this successfully now!
