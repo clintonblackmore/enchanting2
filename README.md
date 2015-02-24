@@ -21,7 +21,7 @@ These instructions work with Raspbian 2014-06-20.  It comes with pygame installe
 Run the following commands in a terminal.
 
     sudo apt-get update
-    sudo apt-get build-essential python-dev python-setuptools
+    sudo apt-get install build-essential python-dev python-setuptools
     sudo easy_install gevent_websocket
 
 
@@ -44,6 +44,11 @@ This code has not yet been tested on Windows.  It should work just fine -- excep
 
 It should work under other flavors of Linux just fine; you might compare against the instructions above. Be certain to get gevent version 1 or newer.  If you'd like to write better instructions here, we'd be happy to have them!
 
+Ubuntu 14.04 installation:
+
+    sudo apt-get update
+    sudo apt-get install build-essential python-dev python-pygame python-gevent python-gevent-websocket
+   
 Running
 -------
 
